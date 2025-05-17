@@ -1,12 +1,14 @@
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { HtmlReporter } from './HtmlReporter';  // import HtmlReporter here
+import { HtmlReporter } from './HtmlReporter';
 
 interface FileComparisonResult {
   fileName: string;
   matched: boolean;
   differences?: string[];
+  oldContent?: any;
+  newContent?: any;
 }
 
 export class PayloadComparer {
@@ -26,14 +28,14 @@ export class PayloadComparer {
       .readdirSync(this.payloadsDir)
       .filter((file) => fs.statSync(path.join(this.payloadsDir, file)).isDirectory())
       .sort()
-      .reverse(); // newest first
+      .reverse();
 
     if (folders.length < 2) {
       console.warn('⚠️ Not enough payload folders to compare.');
       return null;
     }
 
-    return [folders[1], folders[0]]; // [previous, latest]
+    return [folders[1], folders[0]];
   }
 
   compareFolders(oldFolder: string, newFolder: string): void {
@@ -63,7 +65,8 @@ export class PayloadComparer {
         results.push({
           fileName: file,
           matched: false,
-          differences: ['File missing in new version']
+          differences: ['File missing in new version'],
+          oldContent: JSON.parse(fs.readFileSync(oldFilePath, 'utf-8')),
         });
         return;
       }
@@ -82,12 +85,16 @@ export class PayloadComparer {
           fileName: file,
           matched: false,
           differences,
+          oldContent: oldData,
+          newContent: newData,
         });
       } else {
         console.log(chalk.green(`✅ ${file} matches.`));
         results.push({
           fileName: file,
           matched: true,
+          oldContent: oldData,
+          newContent: newData,
         });
       }
     });
@@ -98,19 +105,9 @@ export class PayloadComparer {
 
     console.log(chalk.blue('\n====================================================\n'));
 
-    // Prepare strings for the HTML report
-    const comparisonResults: string[] = results.map((result) => {
-      if (result.matched) {
-        return `✅ ${result.fileName} matches.`;
-      } else {
-        const diffs = result.differences ? result.differences.map(d => `   → ${d}`).join('\n') : '';
-        return `❌ Differences found in ${result.fileName}:\n${diffs}`;
-      }
-    });
-
-    // Generate the HTML report
+    // Pass full structured results to HtmlReporter
     const reporter = new HtmlReporter();
-    reporter.generateReport(oldFolder, newFolder, comparisonResults);
+    reporter.generateReport(oldFolder, newFolder, results);
   }
 
   private compareJSON(oldData: any, newData: any, pathPrefix: string = ''): string[] {
@@ -133,6 +130,8 @@ export class PayloadComparer {
 
       if (typeof oldData[key] === 'object' && oldData[key] !== null) {
         diffs.push(...this.compareJSON(oldData[key], newData[key], fullPath));
+      } else if (oldData[key] !== newData[key]) {
+        diffs.push(`Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
       }
     }
 
