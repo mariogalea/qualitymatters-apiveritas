@@ -1,10 +1,12 @@
 import { ApiCaller } from './ApiCaller';
 import { ApiRequest } from './models/ApiRequest';
+import { PayloadComparer } from './PayloadComparer';
+
 
 async function main() {
   const apis: ApiRequest[] = [
     {
-      name: 'Get All Bookings',
+      name: 'GetAllBookings',
       url: 'http://localhost:8080/bookings',
       auth: {
         username: 'admin',
@@ -12,7 +14,7 @@ async function main() {
       }
     },
     {
-      name: 'Get One Booking',
+      name: 'GetOneBooking',
       url: 'http://localhost:8080/bookings/1',
       auth: {
         username: 'admin',
@@ -50,6 +52,13 @@ async function main() {
 
   const caller = new ApiCaller(apis);
   await caller.callAll();
-}
+
+    // 🔍 Compare two versions manually for now
+  const comparer = new PayloadComparer();
+  const latestFolders = comparer.getLatestTwoPayloadFolders();
+  if (!latestFolders) return;
+
+  const [previous, latest] = latestFolders;
+  comparer.compareFolders(previous, latest);}
 
 main();

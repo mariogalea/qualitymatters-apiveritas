@@ -1,6 +1,7 @@
 // src/ApiCaller.ts
 import axios from 'axios';
 import { ApiRequest } from './models/ApiRequest';
+import { ResponseSaver } from './ResponseSaver';
 
 export class ApiCaller {
   private requests: ApiRequest[];
@@ -10,6 +11,9 @@ export class ApiCaller {
   }
 
   public async callAll(): Promise<void> {
+
+    const saver = new ResponseSaver(); 
+
     for (const req of this.requests) {
         try {
         const axiosConfig = {
@@ -34,6 +38,11 @@ export class ApiCaller {
         console.log(`✅ Response from [${req.name}]:`);
         console.log(`✅ Response from [${req.name}] - Status: ${response.status}`);
         console.log(JSON.stringify(response.data, null, 2));
+
+        // Save the response
+        const safeName = req.name.replace(/\s+/g, '_'); // filename safe
+        saver.saveResponse(safeName, response.data);
+
         } catch (error) {
             if (error instanceof Error) {
                 console.error(`❌ Failed to call [${req.name}]:`, error.message);
