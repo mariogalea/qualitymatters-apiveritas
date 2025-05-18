@@ -4,17 +4,21 @@ import path from 'path';
 
 export interface ComparerOptions {
   strictSchema?: boolean;
+  strictValues?: boolean;
 }
 
 export class ConfigLoader {
   static loadConfig(): ComparerOptions {
     const configPath = path.join(__dirname, '..', 'config.json');
+
     if (fs.existsSync(configPath)) {
       try {
         const rawData = fs.readFileSync(configPath, 'utf-8');
         const parsed = JSON.parse(rawData);
+
         return {
-          strictSchema: parsed.strictSchema === true, // enforce boolean
+          strictSchema: parsed.strictSchema === false ? false : true,  // default to true
+          strictValues: parsed.strictValues === false ? false : true   // default to true
         };
       } catch (err) {
         console.warn('⚠️ Failed to parse config.json, using defaults.');
@@ -23,6 +27,9 @@ export class ConfigLoader {
       console.warn('⚠️ config.json not found, using default settings.');
     }
 
-    return { strictSchema: true }; // default config
+    return {
+      strictSchema: true,
+      strictValues: true
+    };
   }
 }

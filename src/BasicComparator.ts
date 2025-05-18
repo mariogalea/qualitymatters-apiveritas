@@ -1,4 +1,10 @@
 export class BasicComparator {
+  private strictValues: boolean;
+
+  constructor(strictValues: boolean = true) {
+    this.strictValues = strictValues;
+  }
+
   compare(oldData: any, newData: any, pathPrefix: string = ''): string[] {
     const diffs: string[] = [];
 
@@ -11,14 +17,20 @@ export class BasicComparator {
       }
 
       if (typeof oldData[key] !== typeof newData[key]) {
-        diffs.push(`Type mismatch at ${fullPath}: expected ${typeof oldData[key]}, got ${typeof newData[key]}`);
+        diffs.push(
+          `Type mismatch at ${fullPath}: expected ${typeof oldData[key]}, got ${typeof newData[key]}`
+        );
         continue;
       }
 
       if (typeof oldData[key] === 'object' && oldData[key] !== null) {
         diffs.push(...this.compare(oldData[key], newData[key], fullPath));
       } else if (oldData[key] !== newData[key]) {
-        diffs.push(`Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
+        if (this.strictValues) {
+          diffs.push(`Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
+        } else {
+          console.warn(`⚠️  Ignored value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
+        }
       }
     }
 

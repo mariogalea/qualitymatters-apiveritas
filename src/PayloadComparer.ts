@@ -25,7 +25,7 @@ export class PayloadComparer {
 
   constructor(options: ComparerOptions = { strictSchema: true }) {
     this.payloadsDir = path.join(__dirname, '..', 'payloads');
-    this.comparator = new BasicComparator();
+    this.comparator = new BasicComparator(options.strictValues);
     this.options = options;
   }
 

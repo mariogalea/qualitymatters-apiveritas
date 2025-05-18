@@ -2,6 +2,8 @@
 import axios from 'axios';
 import { ApiRequest } from './models/ApiRequest';
 import { ResponseSaver } from './ResponseSaver';
+type AxiosRequestConfig = Parameters<typeof axios>[0];
+
 
 export class ApiCaller {
   private requests: ApiRequest[];
@@ -11,46 +13,45 @@ export class ApiCaller {
   }
 
   public async callAll(): Promise<void> {
-
-    const saver = new ResponseSaver(); 
+    const saver = new ResponseSaver();
 
     for (const req of this.requests) {
-        try {
-        const axiosConfig = {
-            auth: req.auth
-        };
-
-        let response;
-
+      try {
         const method = (req.method ?? 'GET').toUpperCase();
 
-        if (method === 'POST') {
-            response = await axios.post(req.url, req.body, axiosConfig);
-        } else if (method === 'PUT') {
-            response = await axios.put(req.url, req.body, axiosConfig);
-        } else if (method === 'DELETE') {
-            // DELETE usually doesn't have a body, but axios supports it optionally:
-            response = await axios.delete(req.url, axiosConfig);
+        const axiosConfig: AxiosRequestConfig = {
+          url: req.url,
+          method: method,
+          auth: req.auth,
+          data: req.body ?? undefined,
+          validateStatus: () => true // don't throw on non-2xx status
+        };
+
+        const response = await axios(axiosConfig);
+
+        // ✅ Status code assertion
+        if (req.expectedStatus && response.status !== req.expectedStatus) {
+          console.error(
+            `❌ [${req.name}] returned status ${response.status}, expected ${req.expectedStatus}`
+          );
         } else {
-            response = await axios.get(req.url, axiosConfig);
+          console.log(`✅ [${req.name}] returned expected status ${response.status}`);
         }
 
-        console.log(`✅ Response from [${req.name}]:`);
-        console.log(`✅ Response from [${req.name}] - Status: ${response.status}`);
+        console.log(`✅ Response from [${req.name}]`);
         console.log(JSON.stringify(response.data, null, 2));
 
         // Save the response
-        const safeName = req.name.replace(/\s+/g, '_'); // filename safe
+        const safeName = req.name.replace(/\s+/g, '_');
         saver.saveResponse(safeName, response.data);
 
-        } catch (error) {
-            if (error instanceof Error) {
-                console.error(`❌ Failed to call [${req.name}]:`, error.message);
-            } else {
-                console.error(`❌ Failed to call [${req.name}]:`, error);
-            }
+      } catch (error) {
+        if (error instanceof Error) {
+          console.error(`❌ Failed to call [${req.name}]:`, error.message);
+        } else {
+          console.error(`❌ Failed to call [${req.name}]:`, error);
         }
+      }
     }
   }
-
 }

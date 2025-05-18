@@ -1,3 +1,4 @@
 {
-  "strictSchema": true
+  "strictSchema": true,
+  "strictValues": true
 }

@@ -8,6 +8,8 @@ export interface ApiRequest {
     password: string;
   };
   
-  body?: any; // for POST/PUT payloads
+  body?: any; 
+  expectedStatus?: number;
+
 
 }

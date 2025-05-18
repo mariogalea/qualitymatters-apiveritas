@@ -12,6 +12,7 @@ export class ApiTestSuite {
           username: 'admin',
           password: 'secret',
         },
+        expectedStatus: 200,
       },
       {
         name: 'GetOneBooking',
@@ -20,6 +21,7 @@ export class ApiTestSuite {
           username: 'admin',
           password: 'secret',
         },
+        expectedStatus: 200,
       },
       {
         name: 'CreateBooking',
@@ -30,6 +32,7 @@ export class ApiTestSuite {
           firstName: 'John',
           lastName: 'Galea',
         },
+        expectedStatus: 200,
       },
       {
         name: 'UpdateBooking',
@@ -40,12 +43,14 @@ export class ApiTestSuite {
           firstName: 'Mario',
           lastName: 'Borg',
         },
+        expectedStatus: 200,
       },
       {
         name: 'DeleteBooking',
         url: 'http://localhost:8080/bookings/delete/6',
         method: 'DELETE',
         auth: { username: 'admin', password: 'secret' },
+        expectedStatus: 204, 
       },
     ];
   }
