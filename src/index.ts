@@ -1,7 +1,7 @@
 import { ApiCaller } from './ApiCaller';
 import { ApiRequest } from './models/ApiRequest';
 import { PayloadComparer } from './PayloadComparer';
-
+import { ConfigLoader } from './ConfigLoader'; // 🔧 Add this line
 
 async function main() {
   const apis: ApiRequest[] = [
@@ -47,18 +47,21 @@ async function main() {
       method: 'DELETE',
       auth: { username: 'admin', password: 'secret' }
     }
-    // Add more here as needed
   ];
 
   const caller = new ApiCaller(apis);
   await caller.callAll();
 
-    // 🔍 Compare two versions manually for now
-  const comparer = new PayloadComparer();
+  // 🛠️ Load config from file
+  const config = ConfigLoader.loadConfig(); // assumes config.json returns { strictSchema: true }
+
+  // 🔍 Pass config to comparer
+  const comparer = new PayloadComparer(config);
   const latestFolders = comparer.getLatestTwoPayloadFolders();
   if (!latestFolders) return;
 
   const [previous, latest] = latestFolders;
-  comparer.compareFolders(previous, latest);}
+  comparer.compareFolders(previous, latest);
+}
 
 main();

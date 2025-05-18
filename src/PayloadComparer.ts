@@ -6,7 +6,7 @@ import { BasicComparator } from './BasicComparator';
 import generateSchema from 'generate-schema';
 import { SchemaValidator } from './SchemaValidator';
 import { SchemaStrictifier } from './SchemaStrictifier';
-
+import { ConfigLoader, ComparerOptions } from './ConfigLoader';
 
 interface FileComparisonResult {
   fileName: string;
@@ -17,12 +17,16 @@ interface FileComparisonResult {
 }
 
 export class PayloadComparer {
+
   private payloadsDir: string;
   private comparator: BasicComparator;
+  private options: ComparerOptions;
 
-  constructor() {
+
+  constructor(options: ComparerOptions = { strictSchema: true }) {
     this.payloadsDir = path.join(__dirname, '..', 'payloads');
     this.comparator = new BasicComparator();
+    this.options = options;
   }
 
   getLatestTwoPayloadFolders(): [string, string] | null {
@@ -85,12 +89,16 @@ export class PayloadComparer {
       const structuralDiffs = this.comparator.compare(oldData, newData);
 
       const schema = generateSchema.json('Response', oldData);
-      SchemaStrictifier.enforceNoAdditionalProperties(schema);
+
+      if (this.options.strictSchema) {
+        SchemaStrictifier.enforceNoAdditionalProperties(schema);
+      }
+      
       schema.$schema = "http://json-schema.org/draft-07/schema#";
 
       const isValid = validator.validate(schema, newData);
       const schemaErrors = isValid ? [] : validator.getErrors();      
-      
+
       const allDifferences = [...structuralDiffs, ...schemaErrors];
 
 
