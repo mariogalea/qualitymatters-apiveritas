@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
 import { HtmlReporter } from './HtmlReporter';
+import { BasicComparator } from './BasicComparator';
 
 interface FileComparisonResult {
   fileName: string;
@@ -13,9 +14,11 @@ interface FileComparisonResult {
 
 export class PayloadComparer {
   private payloadsDir: string;
+  private comparator: BasicComparator;
 
   constructor() {
     this.payloadsDir = path.join(__dirname, '..', 'payloads');
+    this.comparator = new BasicComparator();
   }
 
   getLatestTwoPayloadFolders(): [string, string] | null {
@@ -74,7 +77,7 @@ export class PayloadComparer {
       const oldData = JSON.parse(fs.readFileSync(oldFilePath, 'utf-8'));
       const newData = JSON.parse(fs.readFileSync(newFilePath, 'utf-8'));
 
-      const differences = this.compareJSON(oldData, newData);
+      const differences = this.comparator.compare(oldData, newData);
 
       if (differences.length > 0) {
         anyDifferences = true;
@@ -105,36 +108,7 @@ export class PayloadComparer {
 
     console.log(chalk.blue('\n====================================================\n'));
 
-    // Pass full structured results to HtmlReporter
     const reporter = new HtmlReporter();
     reporter.generateReport(oldFolder, newFolder, results);
-  }
-
-  private compareJSON(oldData: any, newData: any, pathPrefix: string = ''): string[] {
-    const diffs: string[] = [];
-
-    for (const key in oldData) {
-      const fullPath = pathPrefix ? `${pathPrefix}.${key}` : key;
-
-      if (!(key in newData)) {
-        diffs.push(`Missing key in new data: ${fullPath}`);
-        continue;
-      }
-
-      if (typeof oldData[key] !== typeof newData[key]) {
-        diffs.push(
-          `Type mismatch at ${fullPath}: expected ${typeof oldData[key]}, got ${typeof newData[key]}`
-        );
-        continue;
-      }
-
-      if (typeof oldData[key] === 'object' && oldData[key] !== null) {
-        diffs.push(...this.compareJSON(oldData[key], newData[key], fullPath));
-      } else if (oldData[key] !== newData[key]) {
-        diffs.push(`Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
-      }
-    }
-
-    return diffs;
   }
 }
