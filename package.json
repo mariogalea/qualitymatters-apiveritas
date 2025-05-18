@@ -16,9 +16,11 @@
   "description": "",
   "dependencies": {
     "ajv": "^8.17.1",
+    "ajv-draft-04": "^1.0.0",
     "axios": "^1.9.0",
     "boxen": "^8.0.1",
-    "chalk": "^5.4.1"
+    "chalk": "^5.4.1",
+    "generate-schema": "^2.6.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",

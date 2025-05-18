@@ -3,6 +3,10 @@ import path from 'path';
 import chalk from 'chalk';
 import { HtmlReporter } from './HtmlReporter';
 import { BasicComparator } from './BasicComparator';
+import generateSchema from 'generate-schema';
+import { SchemaValidator } from './SchemaValidator';
+import { SchemaStrictifier } from './SchemaStrictifier';
+
 
 interface FileComparisonResult {
   fileName: string;
@@ -57,6 +61,7 @@ export class PayloadComparer {
     let anyDifferences = false;
 
     const results: FileComparisonResult[] = [];
+    const validator = new SchemaValidator();
 
     files.forEach((file) => {
       const oldFilePath = path.join(oldPath, file);
@@ -77,17 +82,27 @@ export class PayloadComparer {
       const oldData = JSON.parse(fs.readFileSync(oldFilePath, 'utf-8'));
       const newData = JSON.parse(fs.readFileSync(newFilePath, 'utf-8'));
 
-      const differences = this.comparator.compare(oldData, newData);
+      const structuralDiffs = this.comparator.compare(oldData, newData);
 
-      if (differences.length > 0) {
+      const schema = generateSchema.json('Response', oldData);
+      SchemaStrictifier.enforceNoAdditionalProperties(schema);
+      schema.$schema = "http://json-schema.org/draft-07/schema#";
+
+      const isValid = validator.validate(schema, newData);
+      const schemaErrors = isValid ? [] : validator.getErrors();      
+      
+      const allDifferences = [...structuralDiffs, ...schemaErrors];
+
+
+      if (allDifferences.length > 0) {
         anyDifferences = true;
         console.log(chalk.red(`❌ Differences found in ${file}:`));
-        differences.forEach((diff) => console.log(chalk.red('   →', diff)));
+        allDifferences.forEach((diff) => console.log(chalk.red('   →', diff)));
 
         results.push({
           fileName: file,
           matched: false,
-          differences,
+          differences: allDifferences,
           oldContent: oldData,
           newContent: newData,
         });
