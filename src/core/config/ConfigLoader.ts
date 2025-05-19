@@ -6,8 +6,8 @@ import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
 export class ConfigLoader {
   static loadConfig(): IComparerOptions {
-    const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
-  console.log(' > Using config:', configPath);
+  const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
+  console.log('⚙️  Using config:', configPath);
 
 
     if (fs.existsSync(configPath)) {

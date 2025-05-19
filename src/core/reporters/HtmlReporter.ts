@@ -16,7 +16,6 @@ export class HtmlReporter {
 
   constructor() {
     this.reportsDir = path.join(__dirname, '..', '..', '..', 'reports');
-    console.log(" >>>>>>>>>>> " + this.reportsDir);
     if (!fs.existsSync(this.reportsDir)) {
       fs.mkdirSync(this.reportsDir, { recursive: true });
     }

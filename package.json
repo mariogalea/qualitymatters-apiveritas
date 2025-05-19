@@ -1,14 +1,15 @@
 {
-  "name": "qualitymatters-apiveritas",
+  "name": "apiveritas",
   "version": "1.0.0",
   "main": "dist/index.js",
   "bin": {
-    "apiveritas": "./dist/index.js"
+    "apiveritas": "./dist/cli.js"
   },
   "type": "commonjs",
   "scripts": {
-    "build": "tsc",
-    "start": "ts-node src/index.ts"
+  "build": "tsc && node scripts/add-shebang.js",
+  "start": "npm run build && node dist/cli.js",
+  "watch": "tsc --watch"
   },
   "keywords": [],
   "author": "",

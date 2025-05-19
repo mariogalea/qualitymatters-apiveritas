@@ -20,18 +20,20 @@ export class ApiVeritas {
     this.comparer = new PayloadComparer(this.config);
   }
 
-  public async run(): Promise<void> {
+  public async run(reportOnly: boolean = false): Promise<void> {
+  if (!reportOnly) {
     await this.caller.callAll();
-
-    const latestFolders = this.comparer.getLatestTwoPayloadFolders();
-    if (!latestFolders) {
-      console.error('No payload folders found to compare.');
-      return;
-    }
-
-    const [previous, latest] = latestFolders;
-    this.comparer.compareFolders(previous, latest);
   }
+
+  const latestFolders = this.comparer.getLatestTwoPayloadFolders();
+  if (!latestFolders) {
+    console.error('No payload folders found to compare.');
+    return;
+  }
+
+  const [previous, latest] = latestFolders;
+  this.comparer.compareFolders(previous, latest);
+}
 
   
 }
