@@ -1,4 +1,5 @@
 {
   "strictSchema": true,
-  "strictValues": true
+  "strictValues": false,
+  "tolerateEmptyResponses": true
 }

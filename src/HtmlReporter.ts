@@ -102,15 +102,15 @@ export class HtmlReporter {
   fs.writeFileSync(filepath, html, 'utf-8');
 
   const reportMessage =
-    chalk.white.bold('📄 HTML report successfully generated!\n\n') +
-    chalk.cyan.underline(filepath);
+    chalk.redBright.bold('>>>> HTML report successfully generated! <<<<\n\n') +
+    chalk.redBright.bold.underline(filepath);
 
   console.log(
     boxen(reportMessage, {
       padding: 1,
       borderColor: 'red',
       borderStyle: 'round',
-      backgroundColor: '#330000',
+      backgroundColor: 'cyan',
       title: chalk.redBright.bold('ApiVeritas Report'),
       titleAlignment: 'center',
     })

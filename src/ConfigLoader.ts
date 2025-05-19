@@ -1,11 +1,8 @@
 // src/ConfigLoader.ts
 import fs from 'fs';
 import path from 'path';
+import { ComparerOptions } from './ComparerOptions';
 
-export interface ComparerOptions {
-  strictSchema?: boolean;
-  strictValues?: boolean;
-}
 
 export class ConfigLoader {
   static loadConfig(): ComparerOptions {
@@ -18,7 +15,8 @@ export class ConfigLoader {
 
         return {
           strictSchema: parsed.strictSchema === false ? false : true,  // default to true
-          strictValues: parsed.strictValues === false ? false : true   // default to true
+          strictValues: parsed.strictValues === false ? false : true,  // default to true
+          tolerateEmptyResponses: parsed.tolerateEmptyResponses === true ? true : false // default to false
         };
       } catch (err) {
         console.warn('⚠️ Failed to parse config.json, using defaults.');
@@ -29,7 +27,8 @@ export class ConfigLoader {
 
     return {
       strictSchema: true,
-      strictValues: true
+      strictValues: true,
+      tolerateEmptyResponses: false
     };
   }
 }

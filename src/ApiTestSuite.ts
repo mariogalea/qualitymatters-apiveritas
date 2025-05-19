@@ -16,7 +16,7 @@ export class ApiTestSuite {
       },
       {
         name: 'GetOneBooking',
-        url: 'http://localhost:8080/bookings/1',
+        url: 'http://localhost:8080/bookings/3',
         auth: {
           username: 'admin',
           password: 'secret',
@@ -36,7 +36,7 @@ export class ApiTestSuite {
       },
       {
         name: 'UpdateBooking',
-        url: 'http://localhost:8080/bookings/update/1',
+        url: 'http://localhost:8080/bookings/update/3',
         method: 'PUT',
         auth: { username: 'admin', password: 'secret' },
         body: {
@@ -47,10 +47,10 @@ export class ApiTestSuite {
       },
       {
         name: 'DeleteBooking',
-        url: 'http://localhost:8080/bookings/delete/6',
+        url: 'http://localhost:8080/bookings/delete/1',
         method: 'DELETE',
         auth: { username: 'admin', password: 'secret' },
-        expectedStatus: 204, 
+        expectedStatus: 200, 
       },
     ];
   }

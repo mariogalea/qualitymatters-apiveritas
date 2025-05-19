@@ -5,8 +5,19 @@ export class BasicComparator {
     this.strictValues = strictValues;
   }
 
+
+
   compare(oldData: any, newData: any, pathPrefix: string = ''): string[] {
     const diffs: string[] = [];
+
+    if (typeof oldData !== 'object' || oldData === null) {
+      diffs.push(`Old data is not a valid object at ${this.formatPath(pathPrefix)}. Got: ${JSON.stringify(oldData)}`);
+      return diffs;
+    }
+    if (typeof newData !== 'object' || newData === null) {
+      diffs.push(`New data is not a valid object at ${this.formatPath(pathPrefix)}. Got: ${JSON.stringify(newData)}`);
+      return diffs;
+    }
 
     for (const key in oldData) {
       const fullPath = pathPrefix ? `${pathPrefix}.${key}` : key;
@@ -29,11 +40,17 @@ export class BasicComparator {
         if (this.strictValues) {
           diffs.push(`Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
         } else {
-          console.warn(`⚠️  Ignored value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
+          diffs.push(`IGNORED:: Value mismatch at ${fullPath}: "${oldData[key]}" vs "${newData[key]}"`);
         }
       }
     }
 
+    
+
     return diffs;
+  }
+
+  private formatPath(path: string): string {
+     return path || '#';
   }
 }
