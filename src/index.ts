@@ -3,7 +3,9 @@ import { PayloadComparer } from './PayloadComparer';
 import { ConfigLoader } from './core/config/ConfigLoader';
 import { ApiTestSuite } from './tests/ApiTestSuite';
 
-export class ApiVerifierApp {
+
+
+export class ApiVeritas {
   
   private testSuite: ApiTestSuite;
   private caller: ApiCaller;
@@ -30,10 +32,9 @@ export class ApiVerifierApp {
     const [previous, latest] = latestFolders;
     this.comparer.compareFolders(previous, latest);
   }
+
+  
 }
 
-// Bootstrapping the app
-(async () => {
-  const app = new ApiVerifierApp();
-  await app.run();
-})();
+
+

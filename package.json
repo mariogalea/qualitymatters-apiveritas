@@ -20,11 +20,12 @@
     "axios": "^1.9.0",
     "boxen": "^8.0.1",
     "chalk": "^5.4.1",
+    "commander": "^14.0.0",
     "generate-schema": "^2.6.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
-    "@types/node": "^22.15.18",
+    "@types/node": "^22.15.19",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }

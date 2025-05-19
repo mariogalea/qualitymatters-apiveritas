@@ -6,7 +6,7 @@ import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
 export class ConfigLoader {
   static loadConfig(): IComparerOptions {
-  const configPath = path.resolve(__dirname, '../../config/config.json');
+    const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
   console.log(' > Using config:', configPath);
 
 

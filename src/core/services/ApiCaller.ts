@@ -1,8 +1,9 @@
 import axios from 'axios';
+import chalk from 'chalk';
 import { ApiRequest } from '../../interfaces/IApiRequest';
 import { ResponseSaver } from '../utils/ResponseSaver';
-type AxiosRequestConfig = Parameters<typeof axios>[0];
 
+type AxiosRequestConfig = Parameters<typeof axios>[0];
 
 export class ApiCaller {
   private requests: ApiRequest[];
@@ -15,41 +16,35 @@ export class ApiCaller {
     const saver = new ResponseSaver();
 
     for (const req of this.requests) {
-      try {
-        const method = (req.method ?? 'GET').toUpperCase();
+      const method = (req.method ?? 'GET').toUpperCase();
+      const safeName = req.name.replace(/\s+/g, '_');
 
+      try {
         const axiosConfig: AxiosRequestConfig = {
           url: req.url,
-          method: method,
+          method,
           auth: req.auth,
           data: req.body ?? undefined,
-          validateStatus: () => true // don't throw on non-2xx status
+          validateStatus: () => true,
         };
 
         const response = await axios(axiosConfig);
 
-        // ✅ Status code assertion
         if (req.expectedStatus && response.status !== req.expectedStatus) {
-          console.error(
-            `❌ [${req.name}] returned status ${response.status}, expected ${req.expectedStatus}`
-          );
+          console.log(chalk.red(`❌ [${req.name}] returned status ${response.status}, expected ${req.expectedStatus}`));
         } else {
-          console.log(`✅ [${req.name}] returned expected status ${response.status}`);
+          console.log(chalk.green(`✅ [${req.name}] returned expected status ${response.status}`));
         }
 
-        console.log(`✅ Response from [${req.name}]`);
-        //console.log(JSON.stringify(response.data, null, 2));
+        console.log(chalk.blueBright(`📨 Response from [${req.name}]`));
 
         // Save the response
-        const safeName = req.name.replace(/\s+/g, '_');
-        saver.saveResponse(safeName, response.data);
+        const savePath = saver.saveResponse(safeName, response.data);
+        console.log(chalk.gray(`💾 Saved: ${savePath}`));
 
       } catch (error) {
-        if (error instanceof Error) {
-          console.error(`❌ Failed to call [${req.name}]:`, error.message);
-        } else {
-          console.error(`❌ Failed to call [${req.name}]:`, error);
-        }
+        const message = error instanceof Error ? error.message : String(error);
+        console.error(chalk.red(`❌ Failed to call [${req.name}]: ${message}`));
       }
     }
   }
