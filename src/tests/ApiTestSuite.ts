@@ -1,4 +1,4 @@
-import { ApiRequest } from './models/ApiRequest';
+import { ApiRequest } from '../interfaces/IApiRequest';
 
 export class ApiTestSuite {
   private apis: ApiRequest[];

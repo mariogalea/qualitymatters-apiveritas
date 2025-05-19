@@ -6,7 +6,7 @@ export class ResponseSaver {
 
   constructor() {
     const now = new Date();
-const timestamp = `${now.getFullYear()}.${(now.getMonth() + 1)
+   const timestamp = `${now.getFullYear()}.${(now.getMonth() + 1)
   .toString()
   .padStart(2, '0')}.${now.getDate().toString().padStart(2, '0')}.${now
   .getHours()
@@ -15,7 +15,7 @@ const timestamp = `${now.getFullYear()}.${(now.getMonth() + 1)
   .getSeconds()
   .toString()
   .padStart(2, '0')}`;
-    this.timestampFolder = path.join(__dirname, '..', 'payloads', timestamp);
+    this.timestampFolder = path.join(process.cwd(), 'payloads', timestamp);
     this.ensureFolderExists(this.timestampFolder);
   }
 
@@ -34,4 +34,5 @@ const timestamp = `${now.getFullYear()}.${(now.getMonth() + 1)
   getFolderName(): string {
     return path.basename(this.timestampFolder);
   }
+  
 }

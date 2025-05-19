@@ -1,4 +1,4 @@
-export interface FileComparisonResult {
+export interface IFileComparisonResult {
   fileName: string;
   matched: boolean;
   differences?: string[];

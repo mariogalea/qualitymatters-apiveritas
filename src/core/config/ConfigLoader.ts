@@ -1,12 +1,14 @@
 // src/ConfigLoader.ts
 import fs from 'fs';
 import path from 'path';
-import { ComparerOptions } from './ComparerOptions';
+import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
 
 export class ConfigLoader {
-  static loadConfig(): ComparerOptions {
-    const configPath = path.join(__dirname, '..', 'config.json');
+  static loadConfig(): IComparerOptions {
+  const configPath = path.resolve(__dirname, '../../config/config.json');
+  console.log(' > Using config:', configPath);
+
 
     if (fs.existsSync(configPath)) {
       try {

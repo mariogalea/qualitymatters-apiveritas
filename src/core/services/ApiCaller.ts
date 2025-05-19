@@ -1,7 +1,6 @@
-// src/ApiCaller.ts
 import axios from 'axios';
-import { ApiRequest } from './models/ApiRequest';
-import { ResponseSaver } from './ResponseSaver';
+import { ApiRequest } from '../../interfaces/IApiRequest';
+import { ResponseSaver } from '../utils/ResponseSaver';
 type AxiosRequestConfig = Parameters<typeof axios>[0];
 
 
@@ -39,7 +38,7 @@ export class ApiCaller {
         }
 
         console.log(`✅ Response from [${req.name}]`);
-        console.log(JSON.stringify(response.data, null, 2));
+        //console.log(JSON.stringify(response.data, null, 2));
 
         // Save the response
         const safeName = req.name.replace(/\s+/g, '_');

@@ -1,23 +1,26 @@
-// src/PayloadComparer.ts
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
-import { HtmlReporter } from './HtmlReporter';
-import { BasicComparator } from './BasicComparator';
+import { HtmlReporter } from './core/reporters/HtmlReporter';
+import { BasicComparator } from './core/comparators/BasicComparator';
 import generateSchema from 'generate-schema';
-import { SchemaValidator } from './SchemaValidator';
-import { SchemaStrictifier } from './SchemaStrictifier';
-import { ComparerOptions } from './ComparerOptions';
-import { FileComparisonResult } from './FileComparisonResult';
+import { SchemaValidator } from './core/schema/SchemaValidator';
+import { SchemaStrictifier } from './core/schema/SchemaStrictifier';
+import { IComparerOptions } from './interfaces/IComparerOptions';
+import { IFileComparisonResult } from './interfaces/IFileComparisonResult';
 
 
 export class PayloadComparer {
   private payloadsDir: string;
   private comparator: BasicComparator;
-  private options: ComparerOptions;
+  private options: IComparerOptions;
 
-  constructor(options: ComparerOptions = { strictSchema: true, strictValues: true, tolerateEmptyResponses: false }) {
-    this.payloadsDir = path.join(__dirname, '..', 'payloads');
+  constructor(options: IComparerOptions = { strictSchema: true, strictValues: true, tolerateEmptyResponses: false }) {
+    this.payloadsDir = path.join(process.cwd(), 'payloads');
+    console.log(chalk.blue('\n===================================================='));
+    console.log('📁 Looking for payloads in:', this.payloadsDir);
+    console.log(chalk.blue('\n===================================================='));
+
     this.options = options;
     this.comparator = new BasicComparator(this.options.strictValues);
   }
@@ -57,7 +60,7 @@ export class PayloadComparer {
   const files = fs.readdirSync(oldPath);
   let anyDifferences = false;
 
-  const results: FileComparisonResult[] = [];
+  const results: IFileComparisonResult[] = [];
   const validator = new SchemaValidator();
 
   files.forEach((file) => {
@@ -114,8 +117,8 @@ export class PayloadComparer {
 
     // Regular comparison logic
     const structuralDiffs = this.comparator.compare(oldData, newData);
-    const ignoredDiffs = structuralDiffs.filter(d => d.startsWith('IGNORED::'));
-    const realDiffs = structuralDiffs.filter(d => !d.startsWith('IGNORED::'));
+    const ignoredDiffs = structuralDiffs.filter((d: string) => d.startsWith('IGNORED::'));
+    const realDiffs = structuralDiffs.filter((d: string) => !d.startsWith('IGNORED::'));
 
     const schema = generateSchema.json('Response', oldData);
     if (this.options.strictSchema) {

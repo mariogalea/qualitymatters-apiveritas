@@ -1,4 +1,4 @@
-export interface ComparerOptions {
+export interface IComparerOptions {
   
   strictSchema?: boolean;
   strictValues?: boolean;

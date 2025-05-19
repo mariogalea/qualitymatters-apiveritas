@@ -1,7 +1,7 @@
-import { ApiCaller } from './ApiCaller';
+import { ApiCaller } from './core/services/ApiCaller';
 import { PayloadComparer } from './PayloadComparer';
-import { ConfigLoader } from './ConfigLoader';
-import { ApiTestSuite } from './ApiTestSuite';
+import { ConfigLoader } from './core/config/ConfigLoader';
+import { ApiTestSuite } from './tests/ApiTestSuite';
 
 export class ApiVerifierApp {
   
