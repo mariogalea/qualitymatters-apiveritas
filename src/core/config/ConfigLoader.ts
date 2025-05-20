@@ -8,7 +8,6 @@ export class ConfigLoader {
 
   static loadConfig(): IComparerOptions {
     const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
-    this.logger.info(`Using config: ${configPath}`);
 
     if (fs.existsSync(configPath)) {
       try {

@@ -3,15 +3,16 @@ import { ConfigLoader } from './core/config/ConfigLoader';
 import { ApiCaller } from './core/services/ApiCaller';
 import { PayloadComparer } from './PayloadComparer';
 import { Logger } from './core/utils/Logger';
-import fs from 'fs';
 import path from 'path';
 import packageJson from '../package.json';
+import { ApiTestSuite } from './tests/ApiTestSuite';
+import chalk from 'chalk';
 
 const program = new Command();
 
 program
   .name('apiveritas')
-  .description('A lightweight CLI tool for API contract testing')
+  .description('\nA lightweight CLI tool for API contract testing')
   .version(packageJson.version);
 
   const logger = new Logger({ level: 'info' });
@@ -21,10 +22,8 @@ program
   .command('test')
   .description('Run all API requests and save responses')
   .action(async () => {
-    const requestPath = path.join(process.cwd(), 'src/config/api-tests.json');
-    const raw = fs.readFileSync(requestPath, 'utf-8');
-    const requests = JSON.parse(raw);
-
+    const testSuite = new ApiTestSuite();
+    const requests = testSuite.getApis();
     const caller = new ApiCaller(requests, logger);
     await caller.callAll();
   });
@@ -71,9 +70,8 @@ program
   .action(async () => {
     logger.info('Running full test and comparison pipeline...');
 
-    const requestPath = path.join(process.cwd(), 'src/config/api-tests.json');
-    const raw = fs.readFileSync(requestPath, 'utf-8');
-    const requests = JSON.parse(raw);
+    const testSuite = new ApiTestSuite();
+    const requests = testSuite.getApis();
 
     const caller = new ApiCaller(requests, logger);
     await caller.callAll();
@@ -88,10 +86,19 @@ program
 
 program
   .command('notest')
-  .description('??')
+  .description('A little surprise inspired by Pulp Fiction')
   .action(() => {
-    console.log(`"Say 'what' again. I dare you, I double dare you..." \n— Jules Winnfield, Pulp Fiction`);
-    console.log('Just remember, contractual integrity matters. Always.');
+    console.log(
+      chalk.bold.yellow(
+        `"Say 'what' again. I dare you, I double dare you..."`,
+      ),
+    );
+    console.log(chalk.gray('— Jules Winnfield, Pulp Fiction\n'));
+    console.log(
+      chalk.cyanBright(
+        'Just remember, contractual integrity matters. Always.\n',
+      ),
+    );
   });
 
 program.parse(process.argv);
