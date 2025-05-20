@@ -1,31 +1,97 @@
-#!/usr/bin/env node
-
 import { Command } from 'commander';
-import { ApiVeritas } from './index';
-import path from 'path';
+import { ConfigLoader } from './core/config/ConfigLoader';
+import { ApiCaller } from './core/services/ApiCaller';
+import { PayloadComparer } from './PayloadComparer';
 import { Logger } from './core/utils/Logger';
-
-const logger = new Logger();
+import fs from 'fs';
+import path from 'path';
+import packageJson from '../package.json';
 
 const program = new Command();
 
 program
   .name('apiveritas')
-  .description('Run API contract validation')
-  .version('1.0.0')
-  .option('-c, --config <path>', 'Specify config file path')
-  .option('-r, --report', 'Generate report only, skip API calls')
-  .parse(process.argv);
+  .description('A lightweight CLI tool for API contract testing')
+  .version(packageJson.version);
 
-const options = program.opts();
+  const logger = new Logger({ level: 'info' });
+  const config = ConfigLoader.loadConfig();
 
-if (options.config) {
-  process.env.APIVERITAS_CONFIG = path.resolve(options.config);
-  logger.info(`Using config file: ${process.env.APIVERITAS_CONFIG}`);
-}
+program
+  .command('test')
+  .description('Run all API requests and save responses')
+  .action(async () => {
+    const requestPath = path.join(process.cwd(), 'src/config/api-tests.json');
+    const raw = fs.readFileSync(requestPath, 'utf-8');
+    const requests = JSON.parse(raw);
 
-const app = new ApiVeritas();
+    const caller = new ApiCaller(requests, logger);
+    await caller.callAll();
+  });
 
-app.run(options.report).catch((err) => {
-  logger.error(`Error running ApiVeritas: ${err instanceof Error ? err.message : err}`);
-});
+program
+  .command('payloads-path')
+  .description('Show where the payloads are stored')
+  .action(() => {
+    const payloadsPath = path.join(process.cwd(), 'payloads');
+    logger.info(`Payloads are stored in: ${payloadsPath}`);
+  });
+
+program
+  .command('reports-path')
+  .description('Show where HTML reports are stored')
+  .action(() => {
+    const reportsPath = path.join(process.cwd(), 'reports');
+    logger.info(`Reports are stored in: ${reportsPath}`);
+  });
+
+program
+  .command('config')
+  .description('Show current configuration loaded from config.json')
+  .action(() => {
+    console.log('Current Configuration:');
+    console.log(JSON.stringify(config, null, 2));
+  });
+
+program
+  .command('compare')
+  .description('Compare the two most recent payload folders and show test results')
+  .action(() => {
+    const comparer = new PayloadComparer(config, logger);
+    const folders = comparer.getLatestTwoPayloadFolders();
+    if (!folders) return;
+
+    const [oldFolder, newFolder] = folders;
+    comparer.compareFolders(oldFolder, newFolder);
+  });
+
+program
+  .command('run')
+  .description('Run tests, compare payloads, and report results')
+  .action(async () => {
+    logger.info('Running full test and comparison pipeline...');
+
+    const requestPath = path.join(process.cwd(), 'src/config/api-tests.json');
+    const raw = fs.readFileSync(requestPath, 'utf-8');
+    const requests = JSON.parse(raw);
+
+    const caller = new ApiCaller(requests, logger);
+    await caller.callAll();
+
+    const comparer = new PayloadComparer(config, logger);
+    const folders = comparer.getLatestTwoPayloadFolders();
+    if (!folders) return;
+
+    const [oldFolder, newFolder] = folders;
+    comparer.compareFolders(oldFolder, newFolder);
+  });
+
+program
+  .command('easteregg')
+  .description('??')
+  .action(() => {
+    console.log(`"Say 'what' again. I dare you, I double dare you..." 🎬\n— Jules Winnfield, Pulp Fiction`);
+    console.log('💥 You found the ApiVeritas Easter Egg! Just remember, contractual integrity matters. Always.');
+  });
+
+program.parse(process.argv);

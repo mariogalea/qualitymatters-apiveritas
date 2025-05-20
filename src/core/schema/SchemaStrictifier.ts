@@ -1,7 +1,7 @@
-// src/SchemaStrictifier.ts
-
 export class SchemaStrictifier {
+
   public static enforceNoAdditionalProperties(schema: any): void {
+
     if (Array.isArray(schema)) {
       schema.forEach(SchemaStrictifier.enforceNoAdditionalProperties);
     } else if (schema && typeof schema === 'object') {
