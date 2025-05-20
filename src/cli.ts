@@ -87,11 +87,11 @@ program
   });
 
 program
-  .command('easteregg')
+  .command('notest')
   .description('??')
   .action(() => {
-    console.log(`"Say 'what' again. I dare you, I double dare you..." 🎬\n— Jules Winnfield, Pulp Fiction`);
-    console.log('💥 You found the ApiVeritas Easter Egg! Just remember, contractual integrity matters. Always.');
+    console.log(`"Say 'what' again. I dare you, I double dare you..." \n— Jules Winnfield, Pulp Fiction`);
+    console.log('Just remember, contractual integrity matters. Always.');
   });
 
 program.parse(process.argv);
