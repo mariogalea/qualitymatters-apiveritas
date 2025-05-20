@@ -1,23 +1,25 @@
-import axios from 'axios';
-import chalk from 'chalk';
-import { ApiRequest } from '../../interfaces/IApiRequest';
-import { ResponseSaver } from '../utils/ResponseSaver';
+import axios from 'axios'
+import { ApiRequest } from '../../interfaces/IApiRequest'
+import { ResponseSaver } from '../utils/ResponseSaver'
+import { Logger } from '../utils/Logger'
 
-type AxiosRequestConfig = Parameters<typeof axios>[0];
+type AxiosRequestConfig = Parameters<typeof axios>[0]
 
 export class ApiCaller {
-  private requests: ApiRequest[];
+  private requests: ApiRequest[]
+  private logger: Logger
 
-  constructor(requests: ApiRequest[]) {
-    this.requests = requests;
+  constructor(requests: ApiRequest[], logger: Logger = new Logger()) {
+    this.requests = requests
+    this.logger = logger
   }
 
   public async callAll(): Promise<void> {
-    const saver = new ResponseSaver();
+    const saver = new ResponseSaver()
 
     for (const req of this.requests) {
-      const method = (req.method ?? 'GET').toUpperCase();
-      const safeName = req.name.replace(/\s+/g, '_');
+      const method = (req.method ?? 'GET').toUpperCase()
+      const safeName = req.name.replace(/\s+/g, '_')
 
       try {
         const axiosConfig: AxiosRequestConfig = {
@@ -26,26 +28,28 @@ export class ApiCaller {
           auth: req.auth,
           data: req.body ?? undefined,
           validateStatus: () => true,
-        };
-
-        const response = await axios(axiosConfig);
-
-        if (req.expectedStatus && response.status !== req.expectedStatus) {
-          console.log(chalk.red(`❌ [${req.name}] returned status ${response.status}, expected ${req.expectedStatus}`));
-        } else {
-          console.log(chalk.green(`✅ [${req.name}] returned expected status ${response.status}`));
         }
 
-        console.log(chalk.blueBright(`📨 Response from [${req.name}]`));
+        const response = await axios(axiosConfig)
 
-        // Save the response
-        const savePath = saver.saveResponse(safeName, response.data);
-        console.log(chalk.gray(`💾 Saved: ${savePath}`));
+        if (req.expectedStatus && response.status !== req.expectedStatus) {
+          this.logger.error(`[${req.name}] returned status ${response.status}, expected ${req.expectedStatus}`)
+        } else {
+          this.logger.info(`[${req.name}] returned expected status ${response.status}`)
+        }
+
+        this.logger.debug(`Response from [${req.name}]`)
+
+        saver.saveResponse(safeName, response.data)
+
+        this.logger.info(`Saved response: payloads/${saver.getFolderName()}/${safeName}.json`)
 
       } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        console.error(chalk.red(`❌ Failed to call [${req.name}]: ${message}`));
+        const message = error instanceof Error ? error.message : String(error)
+        this.logger.error(`Failed to call [${req.name}]: ${message}`)
       }
+
+      console.log('')
     }
   }
 }

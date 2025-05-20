@@ -1,33 +1,40 @@
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
+import generateSchema from 'generate-schema';
 import { HtmlReporter } from './core/reporters/HtmlReporter';
 import { BasicComparator } from './core/comparators/BasicComparator';
-import generateSchema from 'generate-schema';
 import { SchemaValidator } from './core/schema/SchemaValidator';
 import { SchemaStrictifier } from './core/schema/SchemaStrictifier';
 import { IComparerOptions } from './interfaces/IComparerOptions';
 import { IFileComparisonResult } from './interfaces/IFileComparisonResult';
-
+import { Logger } from './core/utils/Logger';
 
 export class PayloadComparer {
   private payloadsDir: string;
   private comparator: BasicComparator;
   private options: IComparerOptions;
+  private logger: Logger;
 
-  constructor(options: IComparerOptions = { strictSchema: true, strictValues: true, tolerateEmptyResponses: false }) {
+  constructor(
+    options: IComparerOptions = {
+      strictSchema: true,
+      strictValues: true,
+      tolerateEmptyResponses: false,
+    },
+    logger: Logger = new Logger()
+  ) {
     this.payloadsDir = path.join(process.cwd(), 'payloads');
-    console.log(chalk.blue('\n===================================================='));
-    console.log('📁 Looking for payloads in:', this.payloadsDir);
-    console.log(chalk.blue('\n===================================================='));
-
     this.options = options;
     this.comparator = new BasicComparator(this.options.strictValues);
+    this.logger = logger;
+
+    this.logHeader('PayloadComparer', `Looking for payloads in:\n${this.payloadsDir}`);
   }
 
   getLatestTwoPayloadFolders(): [string, string] | null {
     if (!fs.existsSync(this.payloadsDir)) {
-      console.warn('⚠️ No payloads directory found.');
+      this.logger.warn('No payloads directory found.');
       return null;
     }
 
@@ -38,7 +45,7 @@ export class PayloadComparer {
       .reverse();
 
     if (folders.length < 2) {
-      console.warn('⚠️ Not enough payload folders to compare.');
+      this.logger.warn('Not enough payload folders to compare.');
       return null;
     }
 
@@ -46,147 +53,162 @@ export class PayloadComparer {
   }
 
   compareFolders(oldFolder: string, newFolder: string): void {
-  console.log(chalk.blue('\n===================================================='));
-  console.log(
-    chalk.blue(`📂 Comparing payloads folders:`) +
-    `\n   Previous: ${chalk.yellow(oldFolder)}` +
-    `\n   Latest:   ${chalk.yellow(newFolder)}`
-  );
-  console.log(chalk.blue('====================================================\n'));
+    const startTime = Date.now();
 
-  const oldPath = path.join(this.payloadsDir, oldFolder);
-  const newPath = path.join(this.payloadsDir, newFolder);
+    this.logHeader(
+      'Comparison Start',
+      `Comparing payload folders:\nPrevious: ${oldFolder}\nLatest:   ${newFolder}`
+    );
 
-  const files = fs.readdirSync(oldPath);
-  let anyDifferences = false;
+    const oldPath = path.join(this.payloadsDir, oldFolder);
+    const newPath = path.join(this.payloadsDir, newFolder);
 
-  const results: IFileComparisonResult[] = [];
-  const validator = new SchemaValidator();
+    const files = fs.readdirSync(oldPath);
+    let anyDifferences = false;
+    let matchedCount = 0;
+    let diffCount = 0;
 
-  files.forEach((file) => {
-    const oldFilePath = path.join(oldPath, file);
-    const newFilePath = path.join(newPath, file);
+    const results: IFileComparisonResult[] = [];
+    const validator = new SchemaValidator();
 
-    if (!fs.existsSync(newFilePath)) {
-      anyDifferences = true;
-      results.push({
-        fileName: file,
-        matched: false,
-        differences: ['File missing in new version'],
-        oldContent: this.loadAndParseJson(oldFilePath),
-      });
-      return;
-    }
+    files.forEach((file) => {
+      const oldFilePath = path.join(oldPath, file);
+      const newFilePath = path.join(newPath, file);
 
-    const oldData = this.loadAndParseJson(oldFilePath);
-    const newData = this.loadAndParseJson(newFilePath);
-
-    const oldIsEmpty = oldData === null;
-    const newIsEmpty = newData === null;
-
-    // Handle empty payloads optionally (tolerateEmptyResponses)
-    if (this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
-      const msg = `One or both payloads in ${file} are empty or missing. Ignored due to tolerateEmptyResponses=true.`;
-      // Push matched with warning in differences, no console log here
-      results.push({
-        fileName: file,
-        matched: true,
-        differences: [msg],
-        oldContent: oldData,
-        newContent: newData,
-      });
-      return; // skip further comparison for this file
-    }
-
-    // Not tolerant: treat empty as error
-    if (!this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
-      anyDifferences = true;
-      const diffs = [
-        ...(oldIsEmpty ? ['Old data is not a valid object at #. Got empty or missing.'] : []),
-        ...(newIsEmpty ? ['New data is not a valid object at #. Got empty or missing.'] : []),
-      ];
-      results.push({
-        fileName: file,
-        matched: false,
-        differences: diffs,
-        oldContent: oldData,
-        newContent: newData,
-      });
-      return;
-    }
-
-    // Regular comparison logic
-    const structuralDiffs = this.comparator.compare(oldData, newData);
-    const ignoredDiffs = structuralDiffs.filter((d: string) => d.startsWith('IGNORED::'));
-    const realDiffs = structuralDiffs.filter((d: string) => !d.startsWith('IGNORED::'));
-
-    const schema = generateSchema.json('Response', oldData);
-    if (this.options.strictSchema) {
-      SchemaStrictifier.enforceNoAdditionalProperties(schema);
-    }
-    schema.$schema = "http://json-schema.org/draft-07/schema#";
-
-    const isValid = validator.validate(schema, newData);
-    const schemaErrors = isValid ? [] : validator.getErrors();
-
-    const actualDiffs = [...realDiffs, ...schemaErrors];
-    const matched = actualDiffs.length === 0;
-
-    if (!matched) {
-      anyDifferences = true;
-    }
-
-    results.push({
-      fileName: file,
-      matched,
-      differences: [...actualDiffs, ...ignoredDiffs],
-      oldContent: oldData,
-      newContent: newData,
-    });
-  });
-
-  // Now print the results nicely formatted
-  results.forEach(result => {
-    if (result.matched) {
-      console.log(chalk.green(`✅ ${result.fileName} matches.`));
-      if (result.differences && result.differences.length > 0) {
-        result.differences.forEach(diff => {
-          // Indent warnings under the file line
-          console.log(chalk.yellow(`   ⚠️  ${diff.replace(/^IGNORED::\s*/, '')}`));
+      if (!fs.existsSync(newFilePath)) {
+        anyDifferences = true;
+        diffCount++;
+        results.push({
+          fileName: file,
+          matched: false,
+          differences: ['File missing in new version'],
+          oldContent: this.loadAndParseJson(oldFilePath),
         });
+        return;
       }
-    } else {
-      console.log(chalk.red(`❌ Differences found in ${result.fileName}:`));
-      result.differences?.forEach(diff => console.log(chalk.red('   →', diff)));
+
+      const oldData = this.loadAndParseJson(oldFilePath);
+      const newData = this.loadAndParseJson(newFilePath);
+
+      const oldIsEmpty = oldData === null;
+      const newIsEmpty = newData === null;
+
+      if (this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
+        matchedCount++;
+        const msg = `One or both payloads in ${file} are empty or missing. Ignored due to tolerateEmptyResponses=true.`;
+        results.push({
+          fileName: file,
+          matched: true,
+          differences: [msg],
+          oldContent: oldData,
+          newContent: newData,
+        });
+        return;
+      }
+
+      if (!this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
+        anyDifferences = true;
+        diffCount++;
+        const diffs = [
+          ...(oldIsEmpty ? ['Old data is not a valid object at #. Got empty or missing.'] : []),
+          ...(newIsEmpty ? ['New data is not a valid object at #. Got empty or missing.'] : []),
+        ];
+        results.push({
+          fileName: file,
+          matched: false,
+          differences: diffs,
+          oldContent: oldData,
+          newContent: newData,
+        });
+        return;
+      }
+
+      const structuralDiffs = this.comparator.compare(oldData, newData);
+      const ignoredDiffs = structuralDiffs.filter((d: string) => d.startsWith('IGNORED::'));
+      const realDiffs = structuralDiffs.filter((d: string) => !d.startsWith('IGNORED::'));
+
+      const schema = generateSchema.json('Response', oldData);
+      if (this.options.strictSchema) {
+        SchemaStrictifier.enforceNoAdditionalProperties(schema);
+      }
+      schema.$schema = 'http://json-schema.org/draft-07/schema#';
+
+      const isValid = validator.validate(schema, newData);
+      const schemaErrors = isValid ? [] : validator.getErrors();
+
+      const actualDiffs = [...realDiffs, ...schemaErrors];
+      const matched = actualDiffs.length === 0;
+
+      if (matched) {
+        matchedCount++;
+      } else {
+        anyDifferences = true;
+        diffCount++;
+      }
+
+      results.push({
+        fileName: file,
+        matched,
+        differences: [...actualDiffs, ...ignoredDiffs],
+        oldContent: oldData,
+        newContent: newData,
+      });
+    });
+
+    results.forEach((result) => {
+      if (result.matched) {
+        this.logger.info(chalk.green(`✓ ${result.fileName} matches`));
+        result.differences?.forEach((diff) => {
+          if (diff.startsWith('IGNORED::')) {
+            this.logger.warn(chalk.yellow(` ${diff.replace(/^IGNORED::\s*/, '')}`));
+          }
+        });
+      } else {
+        this.logger.error(chalk.red(`  Differences found in ${result.fileName}`));
+        result.differences?.forEach((diff) => this.logger.error(`  ${chalk.red(diff)}`));
+      }
+    });
+
+    if (!anyDifferences) {
+      this.logHeader('Success', chalk.green('All payload files match perfectly'));
     }
-  });
 
-  if (!anyDifferences) {
-    console.log(chalk.green('\n🎉 All payload files match perfectly!'));
-  }
+    const endTime = Date.now();
+    const elapsedSeconds = ((endTime - startTime) / 1000).toFixed(2);
 
-  console.log(chalk.blue('\n====================================================\n'));
+    // Summary line
+    const summaryMessage = [
+      chalk.green(`${matchedCount} matched`),
+      diffCount > 0 ? chalk.red(`${diffCount} differed`) : null,
+      chalk.cyan(`${files.length} total files`),
+      chalk.gray(`in ${elapsedSeconds}s`),
+    ]
+      .filter(Boolean)
+      .join(' | ');
 
-  const reporter = new HtmlReporter();
-  reporter.generateReport(oldFolder, newFolder, results);
+    console.log(`\n${summaryMessage}\n`);
 
+    const reporter = new HtmlReporter();
+    reporter.generateReport(oldFolder, newFolder, results);
 
   }
 
   private loadAndParseJson(filePath: string): any | null {
     try {
       const raw = fs.readFileSync(filePath, 'utf-8').trim();
-
       if (!raw || raw === '""' || raw === 'null') {
-        // Treat empty, empty JSON string, or null literal as null
         return null;
       }
-
       return JSON.parse(raw);
     } catch (err: unknown) {
       const error = err as Error;
-      console.warn(chalk.red(`⚠️ Failed to parse JSON at ${filePath}: ${error.message}`));
+      this.logger.warn(`Failed to parse JSON at ${filePath}: ${error.message}`);
       return null;
     }
+  }
+
+  private logHeader(title: string, message: string): void {
+    const line = '-'.repeat(40);
+    console.log(`\n${chalk.bold(title)}\n${line}\n${message}\n`);
   }
 }

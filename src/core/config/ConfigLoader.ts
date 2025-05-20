@@ -1,14 +1,14 @@
-// src/ConfigLoader.ts
 import fs from 'fs';
 import path from 'path';
 import { IComparerOptions } from '../../interfaces/IComparerOptions';
-
+import { Logger } from '../utils/Logger';
 
 export class ConfigLoader {
-  static loadConfig(): IComparerOptions {
-  const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
-  console.log('⚙️  Using config:', configPath);
+  private static logger = new Logger({ level: 'info' });
 
+  static loadConfig(): IComparerOptions {
+    const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
+    this.logger.info(`Using config: ${configPath}`);
 
     if (fs.existsSync(configPath)) {
       try {
@@ -21,10 +21,10 @@ export class ConfigLoader {
           tolerateEmptyResponses: parsed.tolerateEmptyResponses === true ? true : false // default to false
         };
       } catch (err) {
-        console.warn('⚠️ Failed to parse config.json, using defaults.');
+        this.logger.warn('⚠️ Failed to parse config.json, using defaults.');
       }
     } else {
-      console.warn('⚠️ config.json not found, using default settings.');
+      this.logger.warn('⚠️ config.json not found, using default settings.');
     }
 
     return {
