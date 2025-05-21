@@ -1,17 +1,12 @@
+// Logger.ts
 import chalk from 'chalk';
-
-export type LogLevel = 'info' | 'warn' | 'error' | 'debug';
-
-interface LoggerOptions {
-  level?: LogLevel;
-  silent?: boolean;
-}
+import { ILoggerOptions, LogLevel } from '../../interfaces/ILoggerOptions';
 
 export class Logger {
   private level: LogLevel;
   private silent: boolean;
 
-  constructor(options: LoggerOptions = {}) {
+  constructor(options: ILoggerOptions = {}) {
     this.level = options.level || 'info';
     this.silent = options.silent || false;
   }
@@ -26,29 +21,25 @@ export class Logger {
 
   info(message: string): void {
     if (this.shouldLog('info')) {
-      // Using simple unicode info character with blue color and indent
-      console.log(chalk.blue('ℹ') + '  ' + message);
+      console.log(chalk.white('  ' + message));
     }
   }
 
   warn(message: string): void {
     if (this.shouldLog('warn')) {
-      // Warning triangle unicode with bright yellow, indent to stand out more
-      console.warn(chalk.yellowBright('⚠') + '   ' + chalk.yellow(message));
+      console.warn(chalk.yellow('  ' + message));
     }
   }
 
   error(message: string): void {
     if (this.shouldLog('error')) {
-      // Cross mark unicode with red color, indent
-      console.error(chalk.red('✗') + '  ' + chalk.red(message));
+      console.error(chalk.red('  ' + message));
     }
   }
 
   debug(message: string): void {
     if (this.shouldLog('debug')) {
-      // Bug unicode with gray color, indent
-      console.log(chalk.gray('🐞') + '  ' + chalk.gray(message));
+      console.log(chalk.grey('  ' + message));
     }
   }
 

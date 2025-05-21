@@ -105,12 +105,10 @@ export class HtmlReporter {
 
     fs.writeFileSync(filepath, html, 'utf-8');
 
-    // Clean console output with dashed lines instead of boxed text
     const line = '-'.repeat(50);
-    console.log(chalk.greenBright(line));
-    console.log(chalk.whiteBright.bgGreen.bold(' ✔ HTML Report Generated Successfully! ✔ '));
-    console.log(chalk.greenBright(filepath));
-    console.log(chalk.greenBright(line));
+    this.logger.info(chalk.whiteBright.green.bold('HTML Report Generated Successfully in:'));
+    this.logger.info(chalk.white(filepath + ':\n'));
+
 
     return filepath;
   }

@@ -22,8 +22,14 @@ program
   .command('test')
   .description('Run all API requests and save responses')
   .action(async () => {
+    const testFileName = 'ApiTestSuite.ts';
+    const testFilePath = path.join(process.cwd(), 'src', 'tests', testFileName);
+
+    logger.info('\n  Test File:  ' + testFilePath);
+
     const testSuite = new ApiTestSuite();
     const requests = testSuite.getApis();
+
     const caller = new ApiCaller(requests, logger);
     await caller.callAll();
   });
@@ -33,7 +39,9 @@ program
   .description('Show where the payloads are stored')
   .action(() => {
     const payloadsPath = path.join(process.cwd(), 'payloads');
-    logger.info(`Payloads are stored in: ${payloadsPath}`);
+
+    logger.info('\n  Payloads storage:  ' + payloadsPath + '\n');
+
   });
 
 program
@@ -41,15 +49,28 @@ program
   .description('Show where HTML reports are stored')
   .action(() => {
     const reportsPath = path.join(process.cwd(), 'reports');
-    logger.info(`Reports are stored in: ${reportsPath}`);
+
+    logger.info('\n  Reports storage:  ' + reportsPath + '\n');
+
   });
+
 
 program
   .command('config')
   .description('Show current configuration loaded from config.json')
   .action(() => {
-    console.log('Current Configuration:');
-    console.log(JSON.stringify(config, null, 2));
+    const configPath = path.resolve(process.cwd(), 'src/config/config.json');
+
+    logger.info(`${chalk.white('\n  Configuration file:')} ${chalk.white(configPath)}\n`);
+
+    const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
+
+    Object.entries(config).forEach(([key, value]) => {
+      const paddedKey = key.padEnd(maxKeyLength, ' ');
+      logger.info(`${chalk.white(paddedKey)} : ${chalk.white.bold(String(value))}`);
+    });
+
+    console.log(); // For spacing
   });
 
 program
@@ -58,6 +79,7 @@ program
   .action(() => {
     const comparer = new PayloadComparer(config, logger);
     const folders = comparer.getLatestTwoPayloadFolders();
+
     if (!folders) return;
 
     const [oldFolder, newFolder] = folders;

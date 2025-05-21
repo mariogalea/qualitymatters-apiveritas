@@ -2,6 +2,7 @@ import axios from 'axios'
 import { ApiRequest } from '../../interfaces/IApiRequest'
 import { ResponseSaver } from '../utils/ResponseSaver'
 import { Logger } from '../utils/Logger'
+import chalk from 'chalk'
 
 type AxiosRequestConfig = Parameters<typeof axios>[0]
 
@@ -16,6 +17,8 @@ export class ApiCaller {
 
   public async callAll(): Promise<void> {
     const saver = new ResponseSaver()
+
+    this.logger.info(chalk.white.bold.underline('Test Run:\n'));
 
     for (const req of this.requests) {
       const method = (req.method ?? 'GET').toUpperCase()

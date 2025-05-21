@@ -28,7 +28,7 @@ export class ResponseSaver {
   private ensureFolderExists(folderPath: string): void {
     if (!fs.existsSync(folderPath)) {
       fs.mkdirSync(folderPath, { recursive: true });
-      this.logger.info(`Created folder: ${chalk.cyan(folderPath)}`);
+      this.logger.info(`\n  Storage folder: ${chalk.white(folderPath)}\n`);
     }
   }
 

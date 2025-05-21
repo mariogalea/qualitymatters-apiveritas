@@ -1,6 +1,5 @@
 import fs from 'fs';
 import path from 'path';
-import chalk from 'chalk';
 import generateSchema from 'generate-schema';
 import { HtmlReporter } from './core/reporters/HtmlReporter';
 import { BasicComparator } from './core/comparators/BasicComparator';
@@ -9,6 +8,10 @@ import { SchemaStrictifier } from './core/schema/SchemaStrictifier';
 import { IComparerOptions } from './interfaces/IComparerOptions';
 import { IFileComparisonResult } from './interfaces/IFileComparisonResult';
 import { Logger } from './core/utils/Logger';
+import chalk from 'chalk';
+import { ConfigLoader } from './core/config/ConfigLoader';
+const now = new Date();
+const formattedTime = now.toLocaleString();
 
 export class PayloadComparer {
   private payloadsDir: string;
@@ -29,7 +32,9 @@ export class PayloadComparer {
     this.comparator = new BasicComparator(this.options.strictValues);
     this.logger = logger;
 
-    this.logHeader('PayloadComparer', `Looking for payloads in:\n${this.payloadsDir}`);
+    logger.info(chalk.white.bold.underline('Payload Comparison:\n'));
+    logger.info(`${chalk.white('Payload Folder:')} ${chalk.white(this.payloadsDir)}\n`);
+
   }
 
   getLatestTwoPayloadFolders(): [string, string] | null {
@@ -55,10 +60,9 @@ export class PayloadComparer {
   compareFolders(oldFolder: string, newFolder: string): void {
     const startTime = Date.now();
 
-    this.logHeader(
-      'Comparison Start',
-      `Comparing payload folders:\nPrevious: ${oldFolder}\nLatest:   ${newFolder}`
-    );
+    this.logger.info(`${chalk.white('Present Prod :')} ${chalk.white(oldFolder)}`);
+    this.logger.info(`${chalk.white('Future Prod  :')} ${chalk.white(newFolder)}\n`);
+
 
     const oldPath = path.join(this.payloadsDir, oldFolder);
     const newPath = path.join(this.payloadsDir, newFolder);
@@ -81,7 +85,7 @@ export class PayloadComparer {
         results.push({
           fileName: file,
           matched: false,
-          differences: ['File missing in new version'],
+          differences: ['X File missing in new version'],
           oldContent: this.loadAndParseJson(oldFilePath),
         });
         return;
@@ -95,7 +99,7 @@ export class PayloadComparer {
 
       if (this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
         matchedCount++;
-        const msg = `One or both payloads in ${file} are empty or missing. Ignored due to tolerateEmptyResponses=true.`;
+        const msg = `! One or both payloads in ${file} are empty or missing. Ignored due to tolerateEmptyResponses=true.`;
         results.push({
           fileName: file,
           matched: true,
@@ -110,8 +114,8 @@ export class PayloadComparer {
         anyDifferences = true;
         diffCount++;
         const diffs = [
-          ...(oldIsEmpty ? ['Old data is not a valid object at #. Got empty or missing.'] : []),
-          ...(newIsEmpty ? ['New data is not a valid object at #. Got empty or missing.'] : []),
+          ...(oldIsEmpty ? ['X Old data is not a valid object. Got empty or missing.'] : []),
+          ...(newIsEmpty ? ['X New data is not a valid object. Got empty or missing.'] : []),
         ];
         results.push({
           fileName: file,
@@ -157,40 +161,55 @@ export class PayloadComparer {
 
     results.forEach((result) => {
       if (result.matched) {
-        this.logger.info(chalk.green(`✓ ${result.fileName} matches`));
+
+      this.logger.info(chalk.green(`✓ ${result.fileName} matches`));
         result.differences?.forEach((diff) => {
           if (diff.startsWith('IGNORED::')) {
-            this.logger.warn(chalk.yellow(` ${diff.replace(/^IGNORED::\s*/, '')}`));
+            this.logger.warn(diff.replace(/^IGNORED::\s*/, ''));
           }
         });
       } else {
-        this.logger.error(chalk.red(`  Differences found in ${result.fileName}`));
-        result.differences?.forEach((diff) => this.logger.error(`  ${chalk.red(diff)}`));
+        this.logger.error(`X Differences found in ${result.fileName}`);
+        result.differences?.forEach((diff) => this.logger.error(diff));
       }
     });
 
     if (!anyDifferences) {
-      this.logHeader('Success', chalk.green('All payload files match perfectly'));
+      console.log();
+      this.logger.info(chalk.bgGreen.bold('SUCCESS - ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
+        const config = ConfigLoader.loadConfig();
+        const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));    
+        Object.entries(config).forEach(([key, value]) => {
+          const paddedKey = key.padEnd(maxKeyLength, ' ');
+          this.logger.info(`${chalk.white(paddedKey)} : ${chalk.white.bold(String(value))}`);
+    });
+    } else {
+            console.log();
+      this.logger.info(chalk.bgRed('FAILURE - NOT ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
+        const config = ConfigLoader.loadConfig();
+        const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));    
+        Object.entries(config).forEach(([key, value]) => {
+          const paddedKey = key.padEnd(maxKeyLength, ' ');
+          this.logger.info(`${chalk.white(paddedKey)} : ${chalk.white.bold(String(value))}`);
+    });
+      
     }
 
     const endTime = Date.now();
     const elapsedSeconds = ((endTime - startTime) / 1000).toFixed(2);
 
     // Summary line
-    const summaryMessage = [
-      chalk.green(`${matchedCount} matched`),
-      diffCount > 0 ? chalk.red(`${diffCount} differed`) : null,
-      chalk.cyan(`${files.length} total files`),
-      chalk.gray(`in ${elapsedSeconds}s`),
-    ]
-      .filter(Boolean)
-      .join(' | ');
+    const summaryParts = [
+      `${matchedCount} matched`,
+      diffCount > 0 ? `${diffCount} differed` : null,
+      `${files.length} total files`,
+      `in ${elapsedSeconds}s`,
+    ].filter(Boolean);
 
-    console.log(`\n${summaryMessage}\n`);
+    this.logger.info(chalk.white('\n  ' + summaryParts.join(' | ') + '\n'));
 
     const reporter = new HtmlReporter();
     reporter.generateReport(oldFolder, newFolder, results);
-
   }
 
   private loadAndParseJson(filePath: string): any | null {
@@ -202,13 +221,13 @@ export class PayloadComparer {
       return JSON.parse(raw);
     } catch (err: unknown) {
       const error = err as Error;
-      this.logger.warn(`Failed to parse JSON at ${filePath}: ${error.message}`);
+      this.logger.warn(`! Failed to parse JSON at ${filePath}: ${error.message}`);
       return null;
     }
   }
 
   private logHeader(title: string, message: string): void {
     const line = '-'.repeat(40);
-    console.log(`\n${chalk.bold(title)}\n${line}\n${message}\n`);
+    this.logger.info(`\n${title}\n${line}\n${message}\n`);
   }
 }

@@ -7,7 +7,7 @@ export class ConfigLoader {
   private static logger = new Logger({ level: 'info' });
 
   static loadConfig(): IComparerOptions {
-    const configPath = path.resolve(process.cwd(), 'src/config/config.json'); // use project root
+    const configPath = path.resolve(process.cwd(), 'src/config/config.json'); 
 
     if (fs.existsSync(configPath)) {
       try {
