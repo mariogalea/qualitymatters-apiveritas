@@ -106,7 +106,7 @@ export class HtmlReporter {
     fs.writeFileSync(filepath, html, 'utf-8');
 
     const line = '-'.repeat(50);
-    this.logger.info(chalk.whiteBright.green.bold('HTML Report Generated Successfully in:'));
+    this.logger.info(chalk.magenta.bold('HTML Report Generated Successfully in:'));
     this.logger.info(chalk.white(filepath + ':\n'));
 
 

@@ -112,7 +112,7 @@ program
   .action(() => {
     console.log(
       chalk.bold.yellow(
-        `"Say 'what' again. I dare you, I double dare you..."`,
+        `\n"Say 'what' again. I dare you, I double dare you..."`,
       ),
     );
     console.log(chalk.gray('— Jules Winnfield, Pulp Fiction\n'));
