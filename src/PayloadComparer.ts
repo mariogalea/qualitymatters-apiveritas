@@ -68,6 +68,15 @@ export class PayloadComparer {
     const newPath = path.join(this.payloadsDir, newFolder);
 
     const files = fs.readdirSync(oldPath);
+
+    if (files.length === 0) {
+      this.logger.warn("No payload files found in the old folder to compare.");
+      console.log();
+      this.logger.info(chalk.bgYellow.black('WARNING - NO FILES TO COMPARE'));
+      return;
+    }
+    
+
     let anyDifferences = false;
     let matchedCount = 0;
     let diffCount = 0;
@@ -184,7 +193,7 @@ export class PayloadComparer {
           this.logger.info(`${chalk.white(paddedKey)} : ${chalk.white.bold(String(value))}`);
     });
     } else {
-            console.log();
+      console.log();
       this.logger.info(chalk.bgRed('FAILURE - NOT ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
         const config = ConfigLoader.loadConfig();
         const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));    

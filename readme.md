@@ -34,6 +34,7 @@ qualitymatters-apiveritas/
     │   ├── IApiRequest.ts
     │   ├── IComparerOptions.ts
     │   └── IFileComparisonResult.ts
+    │   └── ILoggerOptions.ts    
     │
     ├── tests/
     │   └── ApiTestSuite.ts

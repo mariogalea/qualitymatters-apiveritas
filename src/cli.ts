@@ -4,16 +4,17 @@ import { ApiCaller } from './core/services/ApiCaller';
 import { PayloadComparer } from './PayloadComparer';
 import { Logger } from './core/utils/Logger';
 import path from 'path';
-import packageJson from '../package.json';
+import { PackageInfo } from './core/utils/PackageInfo';
 import { ApiTestSuite } from './tests/ApiTestSuite';
 import chalk from 'chalk';
 
 const program = new Command();
+const version = PackageInfo.getInstance().getVersion();
 
 program
   .name('apiveritas')
   .description('\nA lightweight CLI tool for API contract testing')
-  .version(packageJson.version);
+  .version(version);
 
   const logger = new Logger({ level: 'info' });
   const config = ConfigLoader.loadConfig();
