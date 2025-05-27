@@ -10,8 +10,6 @@ import { IFileComparisonResult } from './interfaces/IFileComparisonResult';
 import { Logger } from './core/utils/Logger';
 import chalk from 'chalk';
 import { ConfigLoader } from './core/config/ConfigLoader';
-const now = new Date();
-const formattedTime = now.toLocaleString();
 
 export class PayloadComparer {
   private payloadsDir: string;
