@@ -1,5 +1,7 @@
 {
   "strictSchema": true,
   "strictValues": false,
-  "tolerateEmptyResponses": true
+  "tolerateEmptyResponses": true,
+  "payloadsPath": "C:\\dev\\qualitymatters-apiveritas\\payloads",
+  "reportsPath": "C:\\dev\\qualitymatters-apiveritas\\reports"
 }

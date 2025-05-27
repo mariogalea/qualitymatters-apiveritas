@@ -39,7 +39,7 @@ program
   .command('payloads-path')
   .description('Show where the payloads are stored')
   .action(() => {
-    const payloadsPath = path.join(process.cwd(), 'payloads');
+    const payloadsPath = config.payloadsPath;
 
     logger.info('\n  Payloads storage:  ' + payloadsPath + '\n');
 
@@ -49,7 +49,7 @@ program
   .command('reports-path')
   .description('Show where HTML reports are stored')
   .action(() => {
-    const reportsPath = path.join(process.cwd(), 'reports');
+    const reportsPath = config.reportsPath;
 
     logger.info('\n  Reports storage:  ' + reportsPath + '\n');
 
@@ -72,6 +72,45 @@ program
     });
 
     console.log(); // For spacing
+  });
+
+program
+  .command('set-config')
+  .description('Update one or more config values')
+  .option('--strictSchema <boolean>', 'Enable or disable strict schema validation (true/false)')
+  .option('--strictValues <boolean>', 'Enable or disable strict values validation (true/false)')
+  .option('--tolerateEmptyResponses <boolean>', 'Enable or disable tolerance for empty responses (true/false)')
+  .option('--payloadsPath <path>', 'Set a new path for payload storage')
+  .option('--reportsPath <path>', 'Set a new path for reports')
+  .action((options) => {
+    const changes: any = {};
+
+    if (options.strictSchema !== undefined) {
+      changes.strictSchema = options.strictSchema === 'true';
+    }
+
+    if (options.strictValues !== undefined) {
+      changes.strictValue = options.strictSchema === 'false';
+    }
+
+    if (options.payloadsPath !== undefined) {
+      changes.payloadsPath = options.payloadsPath;
+    }
+
+    if (options.reportsPath !== undefined) {
+      changes.reportsPath = options.reportsPath;
+    }
+
+    if (options.tolerateEmptyResponses !== undefined) {
+      changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
+    }
+
+    if (Object.keys(changes).length === 0) {
+      console.log('! No changes provided. Use set-config --help for options.\n');
+      return;
+    }
+
+    ConfigLoader.updateConfig(changes);
   });
 
 program
