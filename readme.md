@@ -1,11 +1,13 @@
 # ApiVeritas
 
 ApiVeritas is a consumer-driven contract testing tool that adopts a black-box approach, enabling consumers to independently verify API contract integrity. 
-> It focuses on schema and data validation to ensure that APIs meet the expectations of their consumers.
+
+It focuses on schema and data validation to ensure that APIs meet the expectations of their consumers.
 
 **Work In Progress**  
-This project is currently under active development. Features and APIs may change, and documentation is being updated continuously.  
->Please use with caution and feel free to contribute or provide feedback!
+This project is currently under active development. Features and APIs may change, and documentation is being updated continuously. 
+ 
+Please use with caution and feel free to contribute or provide feedback!
 
 ## Features
 
