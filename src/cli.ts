@@ -5,7 +5,7 @@ import { PayloadComparer } from './PayloadComparer';
 import { Logger } from './core/utils/Logger';
 import path from 'path';
 import { PackageInfo } from './core/utils/PackageInfo';
-import { ApiTestSuite } from './tests/ApiTestSuite';
+import { TestSuiteLoader } from './core/services/TestSuiteLoader';
 import chalk from 'chalk';
 
 const program = new Command();
@@ -22,18 +22,40 @@ program
 program
   .command('test')
   .description('Run all API requests and save responses')
-  .action(async () => {
-    const testFileName = 'ApiTestSuite.ts';
-    const testFilePath = path.join(process.cwd(), 'src', 'tests', testFileName);
+  .option('--tests <file>', 'Specify the test suite JSON file', 'bookings.json')
+  .action(async (options) => {
+    const testFile = options.tests;
+    logger.info(`\n  Loading test file:  tests/${testFile}\n`);
 
-    logger.info('\n  Test File:  ' + testFilePath);
-
-    const testSuite = new ApiTestSuite();
-    const requests = testSuite.getApis();
+    let requests;
+    try {
+      requests = TestSuiteLoader.loadSuite(testFile);
+    } catch (err) {
+      logger.error('X Failed to load test suite.\n');
+      return;
+    }
 
     const caller = new ApiCaller(requests, logger);
     await caller.callAll();
+});
+
+program
+  .command('list-tests')
+  .description('List all available JSON test files in the tests/ folder')
+  .action(() => {
+    const testFiles = TestSuiteLoader.listAvailableSuites();
+    if (testFiles.length === 0) {
+      logger.info('No test files found in the tests/ directory.\n');
+    } else {
+      logger.info('Available test suites:\n');
+      testFiles.forEach((file) => {
+        logger.info(`  - ${file}`);
+      });
+      console.log();
+    }
   });
+
+
 
 program
   .command('payloads-path')
@@ -126,14 +148,21 @@ program
     comparer.compareFolders(oldFolder, newFolder);
   });
 
-program
+  program
   .command('run')
   .description('Run tests, compare payloads, and report results')
-  .action(async () => {
-    logger.info('Running full test and comparison pipeline...');
+  .option('--tests <file>', 'Specify the test suite JSON file', 'bookings.json')
+  .action(async (options) => {
+    logger.info('Running full test and comparison pipeline...\n');
 
-    const testSuite = new ApiTestSuite();
-    const requests = testSuite.getApis();
+    const testFile = options.tests;
+    let requests;
+    try {
+      requests = TestSuiteLoader.loadSuite(testFile);
+    } catch (err) {
+      logger.error('❌ Failed to load test suite.\n');
+      return;
+    }
 
     const caller = new ApiCaller(requests, logger);
     await caller.callAll();
@@ -145,6 +174,7 @@ program
     const [oldFolder, newFolder] = folders;
     comparer.compareFolders(oldFolder, newFolder);
   });
+
 
 program
   .command('notest')
