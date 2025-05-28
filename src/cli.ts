@@ -22,7 +22,7 @@ program
 program
   .command('test')
   .description('Run all API requests and save responses')
-  .option('--tests <file>', 'Specify the test suite JSON file', 'bookings.json')
+  .requiredOption('--tests <file>', 'Specify the test suite JSON file')
   .action(async (options) => {
     const testFile = options.tests;
     logger.info(`\n  Loading test file:  tests/${testFile}\n`);
@@ -135,23 +135,27 @@ program
     ConfigLoader.updateConfig(changes);
   });
 
-program
+  program
   .command('compare')
   .description('Compare the two most recent payload folders and show test results')
-  .action(() => {
+  .requiredOption('--testSuite <name>', 'Name of the test suite folder to compare')
+  .action((options) => {
     const comparer = new PayloadComparer(config, logger);
     const folders = comparer.getLatestTwoPayloadFolders();
 
     if (!folders) return;
 
     const [oldFolder, newFolder] = folders;
-    comparer.compareFolders(oldFolder, newFolder);
+    comparer.compareFolders(oldFolder, newFolder, options.testSuite);
   });
+
+
 
   program
   .command('run')
   .description('Run tests, compare payloads, and report results')
-  .option('--tests <file>', 'Specify the test suite JSON file', 'bookings.json')
+  .requiredOption('--tests <file>', 'Specify the test suite JSON file')       // requiredOption enforces presence
+  .requiredOption('--testSuite <name>', 'Name of the test suite folder to compare') // requiredOption enforces presence
   .action(async (options) => {
     logger.info('Running full test and comparison pipeline...\n');
 
@@ -172,7 +176,7 @@ program
     if (!folders) return;
 
     const [oldFolder, newFolder] = folders;
-    comparer.compareFolders(oldFolder, newFolder);
+    comparer.compareFolders(oldFolder, newFolder, options.testSuite);
   });
 
 

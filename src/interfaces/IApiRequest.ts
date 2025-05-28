@@ -1,5 +1,4 @@
 export interface ApiRequest {
-
   name: string;
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; // default to GET if not provided
@@ -7,9 +6,12 @@ export interface ApiRequest {
     username: string;
     password: string;
   };
-  
-  body?: any; 
+  body?: any;
   expectedStatus?: number;
 
-
+  /**
+   * Optional name of the test suite this request belongs to.
+   * Used to organize saved responses under payloads/{testSuite}/
+   */
+  testSuite?: string;
 }

@@ -23,14 +23,18 @@ export class TestSuiteLoader {
         throw new Error('Test suite JSON must be an array of API definitions');
       }
 
-      // Basic validation
-      parsed.forEach((entry, i) => {
+      // Extract suite name from file name (e.g., bookings.json → bookings)
+      const suiteName = path.basename(testFileName, '.json');
+
+      // Inject testSuite field
+      const enrichedRequests = parsed.map((entry, i) => {
         if (!entry.name || !entry.url) {
           throw new Error(`Test case at index ${i} is missing required fields (name, url)`);
         }
+        return { ...entry, testSuite: suiteName };
       });
 
-      return parsed as ApiRequest[];
+      return enrichedRequests as ApiRequest[];
     } catch (err: any) {
       this.logger.error(`Failed to parse or validate test suite file: ${err.message}`);
       throw err;

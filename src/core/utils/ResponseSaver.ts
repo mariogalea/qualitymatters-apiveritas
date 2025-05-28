@@ -4,13 +4,13 @@ import chalk from 'chalk';
 import { Logger } from '../utils/Logger';
 
 export class ResponseSaver {
-  private timestampFolder: string;
+  private baseFolder: string;
   private logger: Logger;
 
   constructor() {
-    this.logger = new Logger(); // default options
-    this.timestampFolder = path.join(process.cwd(), 'payloads', this.generateTimestamp());
-    this.ensureFolderExists(this.timestampFolder);
+    this.logger = new Logger();
+    this.baseFolder = path.join(process.cwd(), 'payloads', this.generateTimestamp());
+    this.ensureFolderExists(this.baseFolder);
   }
 
   private generateTimestamp(): string {
@@ -32,12 +32,20 @@ export class ResponseSaver {
     }
   }
 
-  saveResponse(name: string, data: any): void {
-    const filePath = path.join(this.timestampFolder, `${name}.json`);
+  saveResponse(suite: string, name: string, data: any): void {
+    const suiteFolder = path.join(this.baseFolder, suite);
+    this.ensureFolderExists(suiteFolder);
+    const filePath = path.join(suiteFolder, `${name}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   }
 
-  getFolderName(): string {
-    return path.basename(this.timestampFolder);
+  /** Returns the timestamp folder name (e.g., "2025.05.28.142530") */
+  getTimestampFolderName(): string {
+    return path.basename(this.baseFolder);
+  }
+
+  /** Returns the absolute path to the base payload folder (timestamp folder) */
+  getBaseFolderPath(): string {
+    return this.baseFolder;
   }
 }
