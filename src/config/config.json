@@ -3,5 +3,6 @@
   "strictValues": false,
   "tolerateEmptyResponses": true,
   "payloadsPath": "C:\\dev\\qualitymatters-apiveritas\\payloads",
-  "reportsPath": "C:\\dev\\qualitymatters-apiveritas\\reports"
+  "reportsPath": "C:\\dev\\qualitymatters-apiveritas\\reports",
+  "baseUrl": "http://localhost:8080"
 }

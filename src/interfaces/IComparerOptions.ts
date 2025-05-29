@@ -4,6 +4,7 @@ export interface IComparerOptions {
   strictValues?: boolean;
   tolerateEmptyResponses?: boolean;
   payloadsPath?: string;
-  reportsPath?: string
+  reportsPath?: string;
+  baseUrl?: string; 
 
 }

@@ -11,33 +11,48 @@ export class ApiCaller {
   private requests: ApiRequest[];
   private logger: Logger;
 
-  constructor(requests: ApiRequest[], logger: Logger = new Logger()) {
+  constructor(requests: ApiRequest[], logger: Logger = new Logger(), private baseUrl: string = '') {
     this.requests = requests;
     this.logger = logger;
+    this.baseUrl = baseUrl;
   }
 
   public async callAll(): Promise<void> {
+
+    this.logger.info(`Base URL: ${this.baseUrl}`);
+
     const saver = new ResponseSaver();
 
     this.logger.info(chalk.white.bold.underline('Test Run:\n'));
 
     for (const req of this.requests) {
+
       const method = (req.method ?? 'GET').toUpperCase();
       const safeName = req.name.replace(/\s+/g, '_');
       const testSuite = req.testSuite;
+
+      this.logger.info(`Calling URL: ${this.baseUrl + req.url} (method: ${method})`);
 
       if (!testSuite) {
         throw new Error(`Missing testSuite name in request: ${req.name}`);
       }
 
+      if (!req.url) {
+        this.logger.error(`Missing URL in request: ${req.name}`);
+        continue;
+      }
+
       try {
         const axiosConfig: AxiosRequestConfig = {
-          url: req.url,
+          url: this.baseUrl + req.url,
           method,
           auth: req.auth,
           data: req.body ?? undefined,
           validateStatus: () => true,
         };
+
+        this.logger.debug(`Calling [${req.name}] with config:`);
+        this.logger.debug(JSON.stringify(axiosConfig, null, 2));
 
         const response = await axios(axiosConfig);
 

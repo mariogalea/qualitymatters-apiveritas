@@ -1,7 +1,7 @@
 [
   {
     "name": "GetAllBookings",
-    "url": "http://localhost:8080/bookings",
+    "url": "/bookings",
     "auth": {
       "username": "admin",
       "password": "secret"
@@ -10,7 +10,7 @@
   },
   {
     "name": "GetOneBooking",
-    "url": "http://localhost:8080/bookings/3",
+    "url": "/bookings/3",
     "auth": {
       "username": "admin",
       "password": "secret"
@@ -19,7 +19,7 @@
   },
   {
     "name": "CreateBooking",
-    "url": "http://localhost:8080/bookings/new",
+    "url": "/bookings/new",
     "method": "POST",
     "auth": {
       "username": "admin",
@@ -33,7 +33,7 @@
   },
   {
     "name": "UpdateBooking",
-    "url": "http://localhost:8080/bookings/update/3",
+    "url": "/bookings/update/3",
     "method": "PUT",
     "auth": {
       "username": "admin",
@@ -47,7 +47,7 @@
   },
   {
     "name": "DeleteBooking",
-    "url": "http://localhost:8080/bookings/delete/1",
+    "url": "/bookings/delete/1",
     "method": "DELETE",
     "auth": {
       "username": "admin",

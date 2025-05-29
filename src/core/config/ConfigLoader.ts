@@ -5,6 +5,7 @@ import { Logger } from '../utils/Logger';
 import { PathValidator } from './PathValidator';
 
 export class ConfigLoader {
+
   private static logger = new Logger({ level: 'info' });
 
   private static configPath = path.resolve(process.cwd(), 'src/config/config.json');
@@ -37,12 +38,15 @@ export class ConfigLoader {
           this.logger
         );
 
+        const baseUrl = parsed.baseUrl ?? 'http://localhost:8080';
+
         return {
           strictSchema: parsed.strictSchema !== false,
           strictValues: parsed.strictValues !== false,
           tolerateEmptyResponses: parsed.tolerateEmptyResponses === true,
           payloadsPath: validatedPayloadsPath,
-          reportsPath: validatedReportsPath
+          reportsPath: validatedReportsPath,
+          baseUrl
         };
       } catch (err) {
         this.logger.warn('! Failed to parse config.json, using defaults.');
@@ -57,7 +61,8 @@ export class ConfigLoader {
       strictValues: true,
       tolerateEmptyResponses: false,
       payloadsPath: defaultPayloadsPath,
-      reportsPath: defaultReportsPath
+      reportsPath: defaultReportsPath,
+      baseUrl: 'http://localhost:8080' 
     };
   }
 

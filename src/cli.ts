@@ -44,7 +44,7 @@ program
       return;
     }
 
-    const caller = new ApiCaller(requests, logger);
+    const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
   });
 
@@ -111,6 +111,7 @@ program
   .option('--tolerateEmptyResponses <boolean>', 'Enable or disable tolerance for empty responses (true/false)')
   .option('--payloadsPath <path>', 'Set a new path for payload storage')
   .option('--reportsPath <path>', 'Set a new path for reports')
+  .option('--baseUrl <url>', 'Set the base URL for API calls') 
   .action((options) => {
     const changes: any = {};
 
@@ -132,6 +133,10 @@ program
 
     if (options.tolerateEmptyResponses !== undefined) {
       changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
+    }
+    
+    if (options.baseUrl !== undefined) {
+      changes.baseUrl = options.baseUrl;
     }
 
     if (Object.keys(changes).length === 0) {
@@ -201,7 +206,7 @@ program
       return;
     }
 
-    const caller = new ApiCaller(requests, logger);
+    const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
 
     const comparer = new PayloadComparer(config, logger);
