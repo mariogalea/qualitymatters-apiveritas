@@ -1,11 +1,30 @@
+/**
+ * @file PathValidator.ts
+ * @description
+ * Provides safety checks and resolution logic for user-specified folder paths.
+ * Ensures configuration paths are not empty, malformed, or pointing to sensitive system directories.
+ * This module protects against accidental misconfiguration that could overwrite or access critical files.
+ */
+
 import path from 'path';
 
+/**
+ * PathValidator validates folder paths used in the ApiVeritas config.
+ * It prevents the use of dangerous or inappropriate system paths and ensures
+ * that all folder paths used in the tool are safe and well-formed.
+ */
 export class PathValidator {
-
+  /**
+   * List of system-critical root paths considered unsafe to write into or use as output folders.
+   */
   private static riskyRoots = ['/', '/etc', '/bin', '/boot', '/sys', '/proc'];
 
   /**
-   * Checks if a given path is suspicious (e.g., points to critical system folders)
+   * Determines if the given path is suspicious and potentially harmful (e.g., a system directory).
+   * This prevents users from accidentally targeting critical areas of the filesystem.
+   *
+   * @param {string} p - Path to evaluate
+   * @returns {boolean} True if the path is deemed risky
    */
   static isSuspiciousPath(p: string): boolean {
     const normalized = path.resolve(p).toLowerCase();
@@ -16,15 +35,15 @@ export class PathValidator {
   }
 
   /**
-   * Validates a folder path string from config.
-   * If path is missing, empty, or suspicious, returns fallbackPath.
-   * Otherwise returns resolved absolute path.
-   * 
-   * @param folderPath - user-configured path (can be relative or absolute)
-   * @param fallbackPath - path to use if folderPath invalid or unsafe
-   * @param label - config key name for logging/warnings
-   * @param logger - optional logger with .warn(msg)
-   * @returns resolved safe path string
+   * Validates and resolves a folder path from the configuration.
+   * If the path is empty, undefined, or suspicious, a fallback path is used instead.
+   * Logs a warning when falling back, if a logger is provided.
+   *
+   * @param {string | undefined} folderPath - The path string provided by the user (relative or absolute)
+   * @param {string} fallbackPath - The default path to use if validation fails
+   * @param {string} label - Label used in logging to identify the setting (e.g., "payloadsPath")
+   * @param {{ warn: (msg: string) => void }} [logger] - Optional logger with a `warn` method
+   * @returns {string} A safe and validated absolute path
    */
   static validateFolderPath(
     folderPath: string | undefined,
