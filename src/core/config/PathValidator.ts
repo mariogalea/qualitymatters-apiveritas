@@ -1,5 +1,6 @@
 /**
- * @file PathValidator.ts
+ * @file PathValidator.
+ * @author Mario Galea
  * @description
  * Provides safety checks and resolution logic for user-specified folder paths.
  * Ensures configuration paths are not empty, malformed, or pointing to sensitive system directories.

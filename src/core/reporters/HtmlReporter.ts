@@ -1,3 +1,11 @@
+/**
+ * @file HtmlReporter.ts
+ * @author Mario Galea
+ * @description 
+ * Generates a styled HTML report comparing old and new API responses,
+ * including textual differences and JSON payload previews.
+ */
+
 import fs from 'fs';
 import path from 'path';
 import chalk from 'chalk';
@@ -11,10 +19,16 @@ interface ComparisonResult {
   newContent?: any;
 }
 
+/**
+ * Responsible for creating HTML reports summarizing API response comparisons.
+ */
 export class HtmlReporter {
   private reportsDir: string;
   private logger: Logger;
 
+  /**
+   * Initializes the reports directory and logger instance.
+   */
   constructor() {
     this.reportsDir = path.join(__dirname, '..', '..', '..', 'reports');
     this.logger = new Logger({ level: 'info' });
@@ -25,6 +39,14 @@ export class HtmlReporter {
     }
   }
 
+  /**
+   * Generates a timestamped HTML report file showing comparison results between two payload folders.
+   *
+   * @param oldFolder - Path to the older version of payloads.
+   * @param newFolder - Path to the newer version of payloads.
+   * @param comparisonResults - An array of comparison result objects with diff and content data.
+   * @returns The full path to the generated HTML report.
+   */
   generateReport(oldFolder: string, newFolder: string, comparisonResults: ComparisonResult[]): string {
     const now = new Date();
     const timestamp = `${now.getFullYear()}.${(now.getMonth() + 1)
@@ -105,10 +127,8 @@ export class HtmlReporter {
 
     fs.writeFileSync(filepath, html, 'utf-8');
 
-    const line = '-'.repeat(50);
     this.logger.info(chalk.magenta.bold('HTML Report Generated Successfully in:'));
     this.logger.info(chalk.white(filepath + ':\n'));
-
 
     return filepath;
   }
