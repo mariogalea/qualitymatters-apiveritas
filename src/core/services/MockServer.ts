@@ -1,3 +1,15 @@
+/**
+ * @file MockServer.ts
+ * @author Mario Galea
+ * @description
+ * The MockServer class provides an Express-based HTTP server that serves static
+ * JSON mock responses for API contract testing. It maps incoming HTTP requests
+ * to JSON files in a configured directory based on the request method and path,
+ * then returns the file contents as the HTTP response. The server supports
+ * basic authentication and can be started and stopped programmatically, making
+ * it suitable for development and CI environments where a mock backend is needed.
+ */
+
 import express, { RequestHandler } from 'express';
 import basicAuth from 'express-basic-auth';
 import fs from 'fs';
@@ -9,8 +21,6 @@ import { Logger } from '../utils/Logger';
 /**
  * MockServer serves static mock JSON responses based on HTTP method and URL path.
  * It is typically used in CI or development environments for API contract testing.
- * 
- * Author: Mario Galea
  */
 export class MockServer {
 
@@ -21,7 +31,10 @@ export class MockServer {
   private server?: http.Server;
 
   /**
-   * Constructs a new MockServer and sets up middleware and routes.
+   * Constructs a new MockServer instance.
+   * Sets up middleware for JSON parsing and basic authentication,
+   * checks the mock responses directory existence,
+   * and configures routing for serving mock responses.
    */
   constructor() {
     this.logger.info('Initializing MockServer...');
@@ -47,7 +60,14 @@ export class MockServer {
   }
 
   /**
-   * Sets up a universal route handler that matches incoming requests to mock response files.
+   * Sets up a universal route handler for all incoming HTTP requests.
+   * The handler attempts to locate a corresponding mock JSON response file
+   * based on HTTP method and path, then returns its contents as the response.
+   * If no matching file is found or the file contains invalid JSON,
+   * appropriate HTTP error codes and messages are returned.
+   *
+   * @private
+   * @returns {void}
    */
   private setupRoutes(): void {
     const handler: RequestHandler = (req, res) => {
@@ -86,12 +106,16 @@ export class MockServer {
   }
 
   /**
-   * Matches an incoming request method and path to a mock file name.
-   * Converts path to a file-safe format: e.g., GET /api/user → GET_api_user.json
+   * Matches an incoming HTTP request method and path to a mock JSON file name.
+   * Converts the request path to a safe filename by stripping leading/trailing slashes
+   * and replacing internal slashes with underscores.
    *
-   * @param method - HTTP method (GET, POST, etc.)
-   * @param reqPath - Request path
-   * @returns Matching file name without extension, or null if not found
+   * Example: GET /api/user -> GET_api_user.json
+   *
+   * @private
+   * @param {string} method - The HTTP method (e.g., GET, POST).
+   * @param {string} reqPath - The request URL path.
+   * @returns {string | null} The matching filename without extension, or null if no file exists.
    */
   private findMatchingTest(method: string, reqPath: string): string | null {
     const cleanPath = reqPath.replace(/^\/|\/$/g, '').replace(/\//g, '_');
@@ -104,7 +128,8 @@ export class MockServer {
   /**
    * Starts the mock server and begins listening on the configured port.
    *
-   * @returns A promise that resolves when the server has started
+   * @public
+   * @returns {Promise<void>} A promise that resolves once the server is successfully started.
    */
   public start(): Promise<void> {
     return new Promise((resolve) => {
@@ -118,7 +143,10 @@ export class MockServer {
   /**
    * Stops the mock server if it is currently running.
    *
-   * @returns A promise that resolves when the server has stopped
+   * @public
+   * @returns {Promise<void>} A promise that resolves once the server is stopped.
+   * If the server is not running, the promise resolves immediately.
+   * If an error occurs while closing the server, the promise rejects with the error.
    */
   public stop(): Promise<void> {
     return new Promise((resolve, reject) => {
