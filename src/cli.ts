@@ -35,13 +35,9 @@ program
       command.help({ error: true });
       return;
     }
-
-    logger.info(chalk.cyan(`\n  Check Method:  tests/${testFile}\n`));
-
   
     let mockServer: MockServer | undefined;
     if (config.enableMockServer) {
-      logger.info(chalk.cyan(`\n  Im Inside:  tests/${testFile}\n`));
       mockServer = new MockServer();
       await mockServer.start();
     }
@@ -62,7 +58,8 @@ program
     const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
   
-    if (mockServer) await mockServer.stop();
+    if (mockServer) 
+    await mockServer.stop();
   });
 
 // --- list-tests command ---
