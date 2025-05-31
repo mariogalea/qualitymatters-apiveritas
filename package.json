@@ -7,9 +7,9 @@
   },
   "type": "commonjs",
   "scripts": {
-  "build": "tsc && node scripts/add-shebang.js",
-  "start": "npm run build && node dist/cli.js",
-  "watch": "tsc --watch"
+    "build": "tsc && node scripts/add-shebang.js",
+    "start": "npm run build && node dist/cli.js",
+    "watch": "tsc --watch"
   },
   "keywords": [],
   "author": "",
@@ -22,10 +22,14 @@
     "boxen": "^8.0.1",
     "chalk": "4.0.0",
     "commander": "^14.0.0",
+    "express": "^5.1.0",
+    "express-basic-auth": "^1.2.1",
     "generate-schema": "^2.6.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
+    "@types/body-parser": "^1.19.5",
+    "@types/express": "^5.0.2",
     "@types/node": "^22.15.19",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"

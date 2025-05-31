@@ -2,13 +2,22 @@ import fs from 'fs';
 import path from 'path';
 import { ApiRequest } from '../../interfaces/IApiRequest';
 import { Logger } from '../utils/Logger';
+import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
 export class TestSuiteLoader {
-    
   private static logger = new Logger({ level: 'info' });
 
-  static loadSuite(testFileName: string): ApiRequest[] {
-    const testFilePath = path.resolve(process.cwd(), 'tests', testFileName);
+  static loadSuite(testFileName: string, config?: IComparerOptions): ApiRequest[] {
+    
+    const useMock = config?.enableMockServer;
+    const actualFile = useMock ? 'mock.json' : testFileName;
+    const baseUrl = useMock ? 'http://localhost:3000' : config?.baseUrl || 'http://localhost:8080';
+
+    if (useMock) {
+      this.logger.info('\n> Mock server mode enabled\n> Mock Test Suite: mock.json\n> Mock BaseUrl: http://localhost:3000\n');
+    }
+
+    const testFilePath = path.resolve(process.cwd(), 'tests', actualFile);
 
     if (!fs.existsSync(testFilePath)) {
       this.logger.error(`Test file not found: ${testFilePath}`);
@@ -23,15 +32,18 @@ export class TestSuiteLoader {
         throw new Error('Test suite JSON must be an array of API definitions');
       }
 
-      // Extract suite name from file name (e.g., bookings.json → bookings)
-      const suiteName = path.basename(testFileName, '.json');
+      const suiteName = path.basename(actualFile, '.json');
 
-      // Inject testSuite field
       const enrichedRequests = parsed.map((entry, i) => {
         if (!entry.name || !entry.url) {
           throw new Error(`Test case at index ${i} is missing required fields (name, url)`);
         }
-        return { ...entry, testSuite: suiteName };
+
+        return {
+          ...entry,
+          testSuite: suiteName,
+          baseUrl // inject baseUrl in each request explicitly
+        };
       });
 
       return enrichedRequests as ApiRequest[];

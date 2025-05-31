@@ -14,4 +14,5 @@ export interface ApiRequest {
    * Used to organize saved responses under payloads/{testSuite}/
    */
   testSuite?: string;
+  baseUrl?: string; 
 }

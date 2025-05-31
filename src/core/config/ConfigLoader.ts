@@ -12,41 +12,41 @@ export class ConfigLoader {
 
 
   static loadConfig(): IComparerOptions {
-
     const configPath = ConfigLoader.configPath;
-
-    // Defaults:
+  
     const defaultPayloadsPath = path.resolve(process.cwd(), 'payloads');
     const defaultReportsPath = path.resolve(process.cwd(), 'reports');
-
+  
     if (fs.existsSync(configPath)) {
       try {
         const rawData = fs.readFileSync(configPath, 'utf-8');
         const parsed = JSON.parse(rawData);
-
+  
         const validatedPayloadsPath = PathValidator.validateFolderPath(
           parsed.payloadsPath,
           defaultPayloadsPath,
           'payloadsPath',
           this.logger
         );
-        
+  
         const validatedReportsPath = PathValidator.validateFolderPath(
           parsed.reportsPath,
           defaultReportsPath,
           'reportsPath',
           this.logger
         );
-
-        const baseUrl = parsed.baseUrl ?? 'http://localhost:8080';
-
+  
+        // Default baseUrl logic
+        let baseUrl = parsed.baseUrl ?? 'http://localhost:8080';
+  
         return {
           strictSchema: parsed.strictSchema !== false,
           strictValues: parsed.strictValues !== false,
           tolerateEmptyResponses: parsed.tolerateEmptyResponses === true,
           payloadsPath: validatedPayloadsPath,
           reportsPath: validatedReportsPath,
-          baseUrl
+          baseUrl,
+          enableMockServer: parsed.enableMockServer === true // include in return for consumers
         };
       } catch (err) {
         this.logger.warn('! Failed to parse config.json, using defaults.');
@@ -54,7 +54,7 @@ export class ConfigLoader {
     } else {
       this.logger.warn('! config.json not found, using default settings.');
     }
-
+  
     // Return defaults if config file missing or invalid
     return {
       strictSchema: true,
@@ -62,9 +62,11 @@ export class ConfigLoader {
       tolerateEmptyResponses: false,
       payloadsPath: defaultPayloadsPath,
       reportsPath: defaultReportsPath,
-      baseUrl: 'http://localhost:8080' 
+      baseUrl: 'http://localhost:8080',
+      enableMockServer: false
     };
   }
+  
 
   static updateConfig(newValues: Partial<Record<string, any>>): void {
     const config = this.loadConfig();

@@ -1,0 +1,50 @@
+{
+  "_embedded": {
+    "bookingList": [
+      {
+        "id": 1,
+        "firstName": "Mario",
+        "lastName": "Galea",
+        "_links": {
+          "selfLink": {
+            "href": "http://localhost:8080/bookings/1"
+          },
+          "bookingsLink": {
+            "href": "http://localhost:8080/bookings"
+          }
+        }
+      },
+      {
+        "id": 2,
+        "firstName": "Vincent",
+        "lastName": "Vega",
+        "_links": {
+          "selfLink": {
+            "href": "http://localhost:8080/bookings/2"
+          },
+          "bookingsLink": {
+            "href": "http://localhost:8080/bookings"
+          }
+        }
+      },
+      {
+        "id": 3,
+        "firstName": "Jackie",
+        "lastName": "Brown",
+        "_links": {
+          "selfLink": {
+            "href": "http://localhost:8080/bookings/3"
+          },
+          "bookingsLink": {
+            "href": "http://localhost:8080/bookings"
+          }
+        }
+      }
+    ]
+  },
+  "_links": {
+    "bookingsLink": {
+      "href": "http://localhost:8080/bookings"
+    }
+  }
+}

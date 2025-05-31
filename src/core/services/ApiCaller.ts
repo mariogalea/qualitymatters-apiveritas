@@ -18,20 +18,15 @@ export class ApiCaller {
   }
 
   public async callAll(): Promise<void> {
-
     this.logger.info(`Base URL: ${this.baseUrl}`);
 
     const saver = new ResponseSaver();
-
     this.logger.info(chalk.white.bold.underline('Test Run:\n'));
 
     for (const req of this.requests) {
-
       const method = (req.method ?? 'GET').toUpperCase();
       const safeName = req.name.replace(/\s+/g, '_');
       const testSuite = req.testSuite;
-
-      this.logger.info(`Calling URL: ${this.baseUrl + req.url} (method: ${method})`);
 
       if (!testSuite) {
         throw new Error(`Missing testSuite name in request: ${req.name}`);
@@ -42,9 +37,17 @@ export class ApiCaller {
         continue;
       }
 
+      // Allow baseUrl override per request (for mock server support)
+      const effectiveBaseUrl = req.baseUrl ?? this.baseUrl;
+      const fullUrl = effectiveBaseUrl + req.url;
+
+      console.log(fullUrl);
+
+      this.logger.info(`Calling URL: ${fullUrl} (method: ${method})`);
+
       try {
         const axiosConfig: AxiosRequestConfig = {
-          url: this.baseUrl + req.url,
+          url: fullUrl,
           method,
           auth: req.auth,
           data: req.body ?? undefined,

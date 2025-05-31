@@ -5,6 +5,7 @@ export interface IComparerOptions {
   tolerateEmptyResponses?: boolean;
   payloadsPath?: string;
   reportsPath?: string;
-  baseUrl?: string; 
+  baseUrl?: string;
+  enableMockServer?: boolean; 
 
 }

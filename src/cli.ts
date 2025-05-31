@@ -7,6 +7,8 @@ import path from 'path';
 import { PackageInfo } from './core/utils/PackageInfo';
 import { TestSuiteLoader } from './core/services/TestSuiteLoader';
 import chalk from 'chalk';
+import { MockServer } from './core/services/MockServer'; 
+
 
 const program = new Command();
 const version = PackageInfo.getInstance().getVersion();
@@ -19,6 +21,7 @@ program
 
 const logger = new Logger({ level: 'info' });
 const config = ConfigLoader.loadConfig();
+
 
 // --- test command ---
 program
@@ -33,19 +36,33 @@ program
       return;
     }
 
-    logger.info(chalk.cyan(`\n  Loading test file:  tests/${testFile}\n`));
+    logger.info(chalk.cyan(`\n  Check Method:  tests/${testFile}\n`));
 
+  
+    let mockServer: MockServer | undefined;
+    if (config.enableMockServer) {
+      logger.info(chalk.cyan(`\n  Im Inside:  tests/${testFile}\n`));
+      mockServer = new MockServer();
+      await mockServer.start();
+    }
+  
+  
+    logger.info(chalk.cyan(`\n  Loading test file:  tests/${testFile}\n`));
+  
     let requests;
     try {
-      requests = TestSuiteLoader.loadSuite(testFile);
+      requests = TestSuiteLoader.loadSuite(testFile, config);
     } catch (err) {
       logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}\n`));
       logger.error(chalk.red(`-> Make sure the file exists and contains valid JSON.`));
+      if (mockServer) await mockServer.stop();
       return;
     }
-
+  
     const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
+  
+    if (mockServer) await mockServer.stop();
   });
 
 // --- list-tests command ---
@@ -112,6 +129,7 @@ program
   .option('--payloadsPath <path>', 'Set a new path for payload storage')
   .option('--reportsPath <path>', 'Set a new path for reports')
   .option('--baseUrl <url>', 'Set the base URL for API calls') 
+  .option('--enableMockServer <boolean>', 'Run the Application in Mock Server Mode (tests/mock.json ).  All responses are sent to http://mockserver:3000') 
   .action((options) => {
     const changes: any = {};
 
@@ -134,9 +152,13 @@ program
     if (options.tolerateEmptyResponses !== undefined) {
       changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
     }
-    
+
     if (options.baseUrl !== undefined) {
       changes.baseUrl = options.baseUrl;
+    }
+
+    if (options.enableMockServer !== undefined) {
+      changes.enableMockServer = options.enableMockServer === 'true';
     }
 
     if (Object.keys(changes).length === 0) {
@@ -199,7 +221,7 @@ program
 
     let requests;
     try {
-      requests = TestSuiteLoader.loadSuite(testFile);
+      requests = TestSuiteLoader.loadSuite(testFile, config);
     } catch (err) {
       logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}\n`));
       logger.error(chalk.red('-> Make sure the file exists and contains valid JSON.\n'));
