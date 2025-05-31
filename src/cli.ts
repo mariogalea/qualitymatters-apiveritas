@@ -220,20 +220,32 @@ program
  * - Save responses
  * - Compare latest payload folders for differences
  */
+// --- run command ---
 program
   .command('run')
   .description('Run tests, compare payloads, and report results')
   .requiredOption('--tests <file>', 'Specify the test suite JSON file')
   .requiredOption('--testSuite <name>', 'Name of the test suite folder to compare')
   .action(async (options, command) => {
-    const testFile = options.tests;
+    let testFile = options.tests;
     const testSuite = options.testSuite;
+
+    if (config.enableMockServer) {
+      logger.info('\n  Mock server mode enabled.');
+      
+      if (options.tests && options.tests !== 'mock.json') {
+        logger.warn(`Ignoring passed test file "${options.tests}" — using "mock.json" due to enableMockServer=true`);
+      }
+
+      testFile = 'mock.json';
+    }
 
     if (!testFile) {
       logger.error(chalk.red('❌ Missing required option: --tests <file>\n'));
       command.help({ error: true });
       return;
     }
+
     if (!testSuite) {
       logger.error(chalk.red('❌ Missing required option: --testSuite <name>\n'));
       command.help({ error: true });
@@ -242,12 +254,19 @@ program
 
     logger.info(chalk.cyan('\nRunning full test and comparison...\n'));
 
+    let mockServer: MockServer | undefined;
+    if (config.enableMockServer) {
+      mockServer = new MockServer();
+      await mockServer.start();
+    }
+
     let requests;
     try {
       requests = TestSuiteLoader.loadSuite(testFile, config);
     } catch (err) {
       logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}\n`));
       logger.error(chalk.red('-> Make sure the file exists and contains valid JSON.\n'));
+      if (mockServer) await mockServer.stop();
       return;
     }
 
@@ -260,11 +279,14 @@ program
     if (!folders) {
       logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
       logger.info(chalk.yellow('-> Make sure you have at least two payload runs saved in your payloads directory.\n'));
+      if (mockServer) await mockServer.stop();
       return;
     }
 
     const [oldFolder, newFolder] = folders;
     comparer.compareFolders(oldFolder, newFolder, testSuite);
+
+    if (mockServer) await mockServer.stop();
   });
 
 /**

@@ -16,6 +16,7 @@ export class PayloadComparer {
   private comparator: BasicComparator;
   private options: IComparerOptions;
   private logger: Logger;
+  private config: any;
 
   constructor(
     options: IComparerOptions = {
@@ -29,6 +30,8 @@ export class PayloadComparer {
     this.options = options;
     this.comparator = new BasicComparator(this.options.strictValues);
     this.logger = logger;
+    this.config = ConfigLoader.loadConfig();  
+
 
     logger.info(chalk.white.bold.underline('Payload Comparison:\n'));
     logger.info(`${chalk.white('Payload Folder:')} ${chalk.white(this.payloadsDir)}\n`);
@@ -56,6 +59,14 @@ export class PayloadComparer {
   }
 
   compareFolders(oldFolder: string, newFolder: string, testSuite?: string): void {
+
+
+    // Override testSuite if mock server enabled
+    if (this.config.enableMockServer) {
+      // Assuming your mock test suite folder is 'mock'
+      testSuite = 'mock';
+    }
+
     const startTime = Date.now();
   
     this.logger.info(`${chalk.white('Present Prod :')} ${chalk.white(oldFolder)}`);
@@ -197,8 +208,8 @@ export class PayloadComparer {
       }
     });
   
-    const config = ConfigLoader.loadConfig();
-    const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
+     this.config = ConfigLoader.loadConfig();
+    const maxKeyLength = Math.max(...Object.keys(this.config).map(key => key.length));
   
     console.log();
     if (!anyDifferences) {
@@ -206,7 +217,7 @@ export class PayloadComparer {
     } else {
       this.logger.info(chalk.bgRed('FAILURE - NOT ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
     }
-    Object.entries(config).forEach(([key, value]) => {
+    Object.entries(this.config).forEach(([key, value]) => {
       const paddedKey = key.padEnd(maxKeyLength, ' ');
       this.logger.info(`${chalk.white(paddedKey)} : ${chalk.white.bold(String(value))}`);
     });
