@@ -1,3 +1,10 @@
+/**
+ * Entry point for the ApiVeritas CLI tool.
+ * Provides a set of commands for API contract testing, comparison, reporting, and configuration.
+ * 
+ * Author: Mario Galea
+ */
+
 import { Command } from 'commander';
 import { ConfigLoader } from './core/config/ConfigLoader';
 import { ApiCaller } from './core/services/ApiCaller';
@@ -7,8 +14,7 @@ import path from 'path';
 import { PackageInfo } from './core/utils/PackageInfo';
 import { TestSuiteLoader } from './core/services/TestSuiteLoader';
 import chalk from 'chalk';
-import { MockServer } from './core/services/MockServer'; 
-
+import { MockServer } from './core/services/MockServer';
 
 const program = new Command();
 const version = PackageInfo.getInstance().getVersion();
@@ -22,29 +28,38 @@ program
 const logger = new Logger({ level: 'info' });
 const config = ConfigLoader.loadConfig();
 
-
-// --- test command ---
+/**
+ * Run API tests by executing requests defined in a test suite.
+ * Saves responses to timestamped payload folders.
+ * Supports mock server mode.
+ */
 program
   .command('test')
   .description('Run all API requests and save responses')
   .requiredOption('--tests <file>', 'Specify the test suite JSON file')
   .action(async (options, command) => {
-    const testFile = options.tests;
-    if (!testFile) {
+    let testFile = options.tests;
+
+    if (config.enableMockServer) {
+      logger.info('\n  Mock server mode enabled.');
+      if (options.tests && options.tests !== 'mock.json') {
+        logger.warn(`Ignoring passed test file "${options.tests}" — using "mock.json" due to enableMockServer=true`);
+      }
+      testFile = 'mock.json';
+    } else if (!testFile) {
       logger.error(chalk.red('❌ Missing required option: --tests <file>\n'));
       command.help({ error: true });
       return;
     }
-  
+
     let mockServer: MockServer | undefined;
     if (config.enableMockServer) {
       mockServer = new MockServer();
       await mockServer.start();
     }
-  
-  
-    logger.info(chalk.cyan(`\n  Loading test file:  tests/${testFile}\n`));
-  
+
+    logger.info(chalk.cyan(`\n  Loading test suite: tests/${testFile}\n`));
+
     let requests;
     try {
       requests = TestSuiteLoader.loadSuite(testFile, config);
@@ -54,15 +69,16 @@ program
       if (mockServer) await mockServer.stop();
       return;
     }
-  
+
     const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
-  
-    if (mockServer) 
-    await mockServer.stop();
+
+    if (mockServer) await mockServer.stop();
   });
 
-// --- list-tests command ---
+/**
+ * List all JSON test suite files in the `tests/` directory.
+ */
 program
   .command('list-tests')
   .description('List all available JSON test files in the tests/ folder')
@@ -79,7 +95,9 @@ program
     }
   });
 
-// --- payloads-path command ---
+/**
+ * Show the current path where payloads are stored.
+ */
 program
   .command('payloads-path')
   .description('Show where the payloads are stored')
@@ -88,7 +106,9 @@ program
     logger.info(chalk.cyan('\n  Payloads storage:  ') + chalk.white(payloadsPath) + '\n');
   });
 
-// --- reports-path command ---
+/**
+ * Show the current path where HTML reports are stored.
+ */
 program
   .command('reports-path')
   .description('Show where HTML reports are stored')
@@ -97,7 +117,9 @@ program
     logger.info(chalk.cyan('\n  Reports storage:  ') + chalk.white(reportsPath) + '\n');
   });
 
-// --- config command ---
+/**
+ * Display the current loaded configuration from `config.json`.
+ */
 program
   .command('config')
   .description('Show current configuration loaded from config.json')
@@ -116,7 +138,9 @@ program
     console.log(); // For spacing
   });
 
-// --- set-config command ---
+/**
+ * Update configuration values interactively or via flags.
+ */
 program
   .command('set-config')
   .description('Update one or more config values')
@@ -126,34 +150,28 @@ program
   .option('--payloadsPath <path>', 'Set a new path for payload storage')
   .option('--reportsPath <path>', 'Set a new path for reports')
   .option('--baseUrl <url>', 'Set the base URL for API calls') 
-  .option('--enableMockServer <boolean>', 'Run the Application in Mock Server Mode (tests/mock.json ).  All responses are sent to http://mockserver:3000') 
+  .option('--enableMockServer <boolean>', 'Run the Application in Mock Server Mode (tests/mock.json). All responses are sent to http://mockserver:3000') 
   .action((options) => {
     const changes: any = {};
 
     if (options.strictSchema !== undefined) {
       changes.strictSchema = options.strictSchema === 'true';
     }
-
     if (options.strictValues !== undefined) {
       changes.strictValues = options.strictValues === 'true';  
     }
-
     if (options.payloadsPath !== undefined) {
       changes.payloadsPath = options.payloadsPath;
     }
-
     if (options.reportsPath !== undefined) {
       changes.reportsPath = options.reportsPath;
     }
-
     if (options.tolerateEmptyResponses !== undefined) {
       changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
     }
-
     if (options.baseUrl !== undefined) {
       changes.baseUrl = options.baseUrl;
     }
-
     if (options.enableMockServer !== undefined) {
       changes.enableMockServer = options.enableMockServer === 'true';
     }
@@ -167,7 +185,10 @@ program
     logger.info(chalk.green('\n✅ Configuration updated successfully!\n'));
   });
 
-// --- compare command ---
+/**
+ * Compare two latest payload folders for a given test suite.
+ * Reports schema/value differences.
+ */
 program
   .command('compare')
   .description('Compare the two most recent payload folders and show test results')
@@ -193,7 +214,12 @@ program
     comparer.compareFolders(oldFolder, newFolder, testSuite);
   });
 
-// --- run command ---
+/**
+ * Run a full workflow:
+ * - Execute API calls from a test suite
+ * - Save responses
+ * - Compare latest payload folders for differences
+ */
 program
   .command('run')
   .description('Run tests, compare payloads, and report results')
@@ -241,7 +267,9 @@ program
     comparer.compareFolders(oldFolder, newFolder, testSuite);
   });
 
-// --- notest command (fun) ---
+/**
+ * A fun easter egg inspired by Pulp Fiction.
+ */
 program
   .command('notest')
   .description('A little surprise inspired by Pulp Fiction')
@@ -259,7 +287,9 @@ program
     );
   });
 
-// --- Unknown command handler ---
+/**
+ * Handler for unknown commands.
+ */
 program.on('command:*', (operands) => {
   logger.error(chalk.red(`❌ Unknown command: ${operands.join(' ')}\n`));
   program.help({ error: true });

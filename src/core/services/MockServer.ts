@@ -9,6 +9,8 @@ import { Logger } from '../utils/Logger';
 /**
  * MockServer serves static mock JSON responses based on HTTP method and URL path.
  * It is typically used in CI or development environments for API contract testing.
+ * 
+ * Author: Mario Galea
  */
 export class MockServer {
 

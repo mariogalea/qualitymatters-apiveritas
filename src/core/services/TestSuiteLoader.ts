@@ -5,6 +5,7 @@ import { Logger } from '../utils/Logger';
 import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
 export class TestSuiteLoader {
+  
   private static logger = new Logger({ level: 'info' });
 
   static loadSuite(testFileName: string, config?: IComparerOptions): ApiRequest[] {
