@@ -20,14 +20,16 @@ interface ComparisonResult {
 }
 
 /**
- * Responsible for creating HTML reports summarizing API response comparisons.
+ * Responsible for generating an HTML report summarizing API response comparisons.
+ * Each report includes match status, textual differences, and side-by-side JSON views.
  */
 export class HtmlReporter {
   private reportsDir: string;
   private logger: Logger;
 
   /**
-   * Initializes the reports directory and logger instance.
+   * Constructs the HtmlReporter.
+   * Creates the reports directory if it does not exist, and initializes the logger.
    */
   constructor() {
     this.reportsDir = path.join(__dirname, '..', '..', '..', 'reports');

@@ -1,12 +1,31 @@
+/**
+ * @file BasicComparator.ts
+ * @author Mario Galea
+ * @description
+ * Provides a simple recursive comparison of two JSON-like objects,
+ * optionally enforcing strict value matching.
+ */
+
 export class BasicComparator {
   private strictValues: boolean;
 
+  /**
+   * Creates an instance of BasicComparator.
+   *
+   * @param strictValues - If true, value mismatches are considered differences; otherwise, they are flagged but tolerated.
+   */
   constructor(strictValues: boolean = true) {
     this.strictValues = strictValues;
   }
 
-
-
+  /**
+   * Recursively compares two JSON-like objects and returns an array of human-readable difference strings.
+   *
+   * @param oldData - The original (expected) data object.
+   * @param newData - The new (actual) data object to compare against the original.
+   * @param pathPrefix - Internal use for recursion; tracks the nested path of the current key being compared.
+   * @returns An array of difference messages. Empty if objects match (under configured tolerance).
+   */
   compare(oldData: any, newData: any, pathPrefix: string = ''): string[] {
     const diffs: string[] = [];
 
@@ -14,6 +33,7 @@ export class BasicComparator {
       diffs.push(`X Old data is not a valid object at ${this.formatPath(pathPrefix)}. Got: ${JSON.stringify(oldData)}`);
       return diffs;
     }
+
     if (typeof newData !== 'object' || newData === null) {
       diffs.push(`X New data is not a valid object at ${this.formatPath(pathPrefix)}. Got: ${JSON.stringify(newData)}`);
       return diffs;
@@ -45,12 +65,16 @@ export class BasicComparator {
       }
     }
 
-    
-
     return diffs;
   }
 
+  /**
+   * Formats a path for display. If the path is empty, returns a root symbol.
+   *
+   * @param path - The current nested key path.
+   * @returns A formatted string path or `#` if root.
+   */
   private formatPath(path: string): string {
-     return path || '#';
+    return path || '#';
   }
 }
