@@ -6,7 +6,7 @@
 
 import { Logger } from '../utils/Logger';
 
-export enum ExitCodes {
+export enum ExitCode {
   SUCCESS = 0,
   GENERAL_ERROR = 1,
   INVALID_ARGS = 2,
@@ -25,7 +25,7 @@ export class ExitHandler {
   }
 
   /** Generic exit method */
-  exit(code: ExitCodes, message?: string, level: 'info' | 'warn' | 'error' = 'info'): never {
+  exit(code: ExitCode, message?: string, level: 'info' | 'warn' | 'error' = 'info'): never {
     if (message) {
       this.log(level, message);
     } else {
@@ -36,42 +36,42 @@ export class ExitHandler {
 
   /** Logs and exits with success code (0) */
   success(message?: string): never {
-    this.exit(ExitCodes.SUCCESS, message ?? 'Operation completed successfully.', 'info');
+    this.exit(ExitCode.SUCCESS, message ?? 'Operation completed successfully.', 'info');
   }
 
   /** Handles general unexpected errors */
   generalError(message?: string): never {
-    this.exit(ExitCodes.GENERAL_ERROR, message ?? 'An unexpected error occurred.', 'error');
+    this.exit(ExitCode.GENERAL_ERROR, message ?? 'An unexpected error occurred.', 'error');
   }
 
   /** Handles missing or invalid arguments */
   invalidArgs(message?: string): never {
-    this.exit(ExitCodes.INVALID_ARGS, message ?? 'Missing or invalid arguments provided.', 'warn');
+    this.exit(ExitCode.INVALID_ARGS, message ?? 'Missing or invalid arguments provided.', 'warn');
   }
 
   /** Handles configuration errors */
   configError(message?: string): never {
-    this.exit(ExitCodes.CONFIG_ERROR, message ?? 'Configuration error encountered.', 'error');
+    this.exit(ExitCode.CONFIG_ERROR, message ?? 'Configuration error encountered.', 'error');
   }
 
   /** Handles test suite loading errors */
   testSuiteLoadingError(message?: string): never {
-    this.exit(ExitCodes.TEST_SUITE_LOADING_ERROR, message ?? 'Failed to load test suite.', 'error');
+    this.exit(ExitCode.TEST_SUITE_LOADING_ERROR, message ?? 'Failed to load test suite.', 'error');
   }
 
   /** Handles API call failures */
   apiCallFailure(message?: string): never {
-    this.exit(ExitCodes.API_CALL_FAILURE, message ?? 'API call failed.', 'error');
+    this.exit(ExitCode.API_CALL_FAILURE, message ?? 'API call failed.', 'error');
   }
 
   /** Handles comparison failures (payload diff found) */
   comparisonFailure(message?: string): never {
-    this.exit(ExitCodes.COMPARISON_FAILURE, message ?? 'Payload comparison failed.', 'warn');
+    this.exit(ExitCode.COMPARISON_FAILURE, message ?? 'Payload comparison failed.', 'warn');
   }
 
   /** Handles mock server errors */
   mockServerError(message?: string): never {
-    this.exit(ExitCodes.MOCK_SERVER_ERROR, message ?? 'Mock server encountered an error.', 'error');
+    this.exit(ExitCode.MOCK_SERVER_ERROR, message ?? 'Mock server encountered an error.', 'error');
   }
 
   /** Internal logger helper */
