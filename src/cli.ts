@@ -1,8 +1,10 @@
 /**
+ * @file cli.ts
+ * @author Mario Galea
+ * @description
  * Entry point for the ApiVeritas CLI tool.
  * Provides a set of commands for API contract testing, comparison, reporting, and configuration.
  * 
- * Author: Mario Galea
  */
 
 import { Command } from 'commander';
@@ -32,6 +34,14 @@ const config = ConfigLoader.loadConfig();
  * Run API tests by executing requests defined in a test suite.
  * Saves responses to timestamped payload folders.
  * Supports mock server mode.
+ * 
+ * @example
+ * // Run tests with a given test suite JSON file
+ * $ apiveritas test --tests bookings.json
+ * 
+ * @example
+ * // Run tests in mock server mode (mock.json is forced)
+ * $ apiveritas test --tests mock.json
  */
 program
   .command('test')
@@ -78,6 +88,9 @@ program
 
 /**
  * List all JSON test suite files in the `tests/` directory.
+ * 
+ * @example
+ * $ apiveritas list-tests
  */
 program
   .command('list-tests')
@@ -97,6 +110,9 @@ program
 
 /**
  * Show the current path where payloads are stored.
+ * 
+ * @example
+ * $ apiveritas payloads-path
  */
 program
   .command('payloads-path')
@@ -108,6 +124,9 @@ program
 
 /**
  * Show the current path where HTML reports are stored.
+ * 
+ * @example
+ * $ apiveritas reports-path
  */
 program
   .command('reports-path')
@@ -119,6 +138,9 @@ program
 
 /**
  * Display the current loaded configuration from `config.json`.
+ * 
+ * @example
+ * $ apiveritas config
  */
 program
   .command('config')
@@ -139,7 +161,15 @@ program
   });
 
 /**
- * Update configuration values interactively or via flags.
+ * Update configuration values interactively.
+ * 
+ * @example
+ * // Enable strict schema validation and update base URL
+ * $ apiveritas set-config --strictSchema true --baseUrl https://api.example.com
+ * 
+ * @example
+ * // Disable mock server mode
+ * $ apiveritas set-config --enableMockServer false
  */
 program
   .command('set-config')
@@ -188,6 +218,9 @@ program
 /**
  * Compare two latest payload folders for a given test suite.
  * Reports schema/value differences.
+ * 
+ * @example
+ * $ apiveritas compare --testSuite bookings
  */
 program
   .command('compare')
@@ -219,8 +252,10 @@ program
  * - Execute API calls from a test suite
  * - Save responses
  * - Compare latest payload folders for differences
+ * 
+ * @example
+ * $ apiveritas run --tests bookings.json --testSuite bookings
  */
-// --- run command ---
 program
   .command('run')
   .description('Run tests, compare payloads, and report results')
@@ -291,6 +326,9 @@ program
 
 /**
  * A fun easter egg inspired by Pulp Fiction.
+ * 
+ * @example
+ * $ apiveritas notest
  */
 program
   .command('notest')
