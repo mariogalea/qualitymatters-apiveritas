@@ -206,6 +206,22 @@ When enabled (`enableMockServer: true`), ApiVeritas runs an internal mock server
 
 ---
 
+## Exit Codes
+
+ApiVeritas uses the following exit codes to indicate the result of CLI operations. This helps with scripting, CI pipelines, and automated monitoring.
+
+| Exit Code | Meaning                                   |
+|-----------|-------------------------------------------|
+| 0         | Success                                   |
+| 1         | General error (unexpected)                |
+| 2         | Missing or invalid arguments              |
+| 3         | Configuration error                       |
+| 4         | Test suite loading error                  |
+| 5         | API call failure                          |
+| 6         | Comparison failure (payload diff found)   |
+| 7         | Mock server error                         |
+
+
 ## Author
 
 Mario Galea
