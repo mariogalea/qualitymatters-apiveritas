@@ -17,9 +17,17 @@ import { PackageInfo } from './core/utils/PackageInfo';
 import { TestSuiteLoader } from './core/services/TestSuiteLoader';
 import chalk from 'chalk';
 import { MockServer } from './core/services/MockServer';
+import { ExitHandler, ExitCode } from './core/services/ExitHandler';
+import { IComparerOptions } from './interfaces/IComparerOptions';
+import { IApiRequest } from './interfaces/IApiRequest';
 
 const program = new Command();
 const version = PackageInfo.getInstance().getVersion();
+
+const logger = new Logger();
+const exitHandler = new ExitHandler(logger);
+
+
 
 program
   .name('apiveritas')
@@ -27,8 +35,12 @@ program
   .version(version)
   .showHelpAfterError('(add --help for additional info)');
 
-const logger = new Logger({ level: 'info' });
-const config = ConfigLoader.loadConfig();
+  let config: any;
+  try {
+    config = ConfigLoader.loadConfig();
+  } catch (err) {
+    exitHandler.configError('❌ Failed to load configuration. Ensure config.json exists and is valid.');
+  }
 
 /**
  * Run API tests by executing requests defined in a test suite.
@@ -57,34 +69,50 @@ program
       }
       testFile = 'mock.json';
     } else if (!testFile) {
-      logger.error(chalk.red('❌ Missing required option: --tests <file>\n'));
-      command.help({ error: true });
-      return;
+      exitHandler.invalidArgs('❌ Missing required option: --tests <file>');
     }
 
     let mockServer: MockServer | undefined;
+
     if (config.enableMockServer) {
-      mockServer = new MockServer();
-      await mockServer.start();
+      try {
+        mockServer = new MockServer();
+        await mockServer.start();
+      } catch (err: unknown) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.error(chalk.red(`❌ Failed to start mock server: ${message}`));
+        exitHandler.mockServerError();
+      }
     }
 
     logger.info(chalk.cyan(`\n  Loading test suite: tests/${testFile}\n`));
 
-    let requests;
+    let requests: IApiRequest[];
     try {
       requests = TestSuiteLoader.loadSuite(testFile, config);
-    } catch (err) {
-      logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}\n`));
-      logger.error(chalk.red(`-> Make sure the file exists and contains valid JSON.`));
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}`));
+      logger.error(chalk.red(`-> ${message}`));
       if (mockServer) await mockServer.stop();
-      return;
+      exitHandler.testSuiteLoadingError();
+      return; 
+    }
+    
+    const caller = new ApiCaller(requests, logger, config.baseUrl);
+    try {
+      await caller.callAll();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(chalk.red(`❌ Error during API execution: ${message}`));
+      if (mockServer) await mockServer.stop();
+      exitHandler.apiCallFailure();
     }
 
-    const caller = new ApiCaller(requests, logger, config.baseUrl);
-    await caller.callAll();
-
     if (mockServer) await mockServer.stop();
+    exitHandler.success();
   });
+
 
 /**
  * List all JSON test suite files in the `tests/` directory.
@@ -96,17 +124,28 @@ program
   .command('list-tests')
   .description('List all available JSON test files in the tests/ folder')
   .action(() => {
-    const testFiles = TestSuiteLoader.listAvailableSuites();
-    if (testFiles.length === 0) {
-      logger.info(chalk.yellow('No test files found in the tests/ directory.\n'));
-    } else {
-      logger.info(chalk.green('Available test suites:\n'));
+    try {
+      const testFiles = TestSuiteLoader.listAvailableSuites();
+
+      if (testFiles.length === 0) {
+        logger.info(chalk.yellow('⚠️  No test files found in the tests/ directory.\n'));
+        exitHandler.testSuiteLoadingError(); 
+      }
+
+      logger.info(chalk.green('✅ Available test suites:\n'));
       testFiles.forEach((file) => {
         logger.info(`  - ${chalk.white(file)}`);
       });
       console.log();
+      exitHandler.success();
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : String(err);
+      logger.error(chalk.red(`❌ Failed to list test suites.`));
+      logger.error(chalk.red(`-> ${message}`));
+      exitHandler.generalError();
     }
   });
+
 
 /**
  * Show the current path where payloads are stored.
@@ -118,8 +157,19 @@ program
   .command('payloads-path')
   .description('Show where the payloads are stored')
   .action(() => {
-    const payloadsPath = config.payloadsPath;
-    logger.info(chalk.cyan('\n  Payloads storage:  ') + chalk.white(payloadsPath) + '\n');
+    try {
+      const payloadsPath = config.payloadsPath;
+
+      if (!payloadsPath) {
+        exitHandler.configError('❌ Payloads path is not defined in the configuration.');
+      }
+
+      logger.info(chalk.cyan('\n  Payloads storage:  ') + chalk.white(payloadsPath) + '\n');
+      exitHandler.success();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred while retrieving payloads path.';
+      exitHandler.generalError(`❌ ${message}`);
+    }
   });
 
 /**
@@ -132,9 +182,21 @@ program
   .command('reports-path')
   .description('Show where HTML reports are stored')
   .action(() => {
-    const reportsPath = config.reportsPath;
-    logger.info(chalk.cyan('\n  Reports storage:  ') + chalk.white(reportsPath) + '\n');
+    try {
+      const reportsPath = config.reportsPath;
+
+      if (!reportsPath) {
+        exitHandler.configError('❌ Reports path is not defined in the configuration.');
+      }
+
+      logger.info(chalk.cyan('\n  Reports storage:  ') + chalk.white(reportsPath) + '\n');
+      exitHandler.success();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred while retrieving reports path.';
+      exitHandler.generalError(`❌ ${message}`);
+    }
   });
+
 
 /**
  * Display the current loaded configuration from `config.json`.
@@ -146,18 +208,28 @@ program
   .command('config')
   .description('Show current configuration loaded from config.json')
   .action(() => {
-    const configPath = path.resolve(process.cwd(), 'src/config/config.json');
+    try {
+      const configPath = path.resolve(process.cwd(), 'src/config/config.json');
 
-    logger.info(chalk.white('\n  Configuration file: ') + chalk.white.bold(configPath) + '\n');
+      if (!config || Object.keys(config).length === 0) {
+        exitHandler.configError('❌ Configuration is empty or not loaded properly.');
+      }
 
-    const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
+      logger.info(chalk.white('\n  Configuration file: ') + chalk.white.bold(configPath) + '\n');
 
-    Object.entries(config).forEach(([key, value]) => {
-      const paddedKey = key.padEnd(maxKeyLength, ' ');
-      logger.info(`${chalk.white(paddedKey)} : ${chalk.green.bold(String(value))}`);
-    });
+      const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
 
-    console.log(); // For spacing
+      Object.entries(config).forEach(([key, value]) => {
+        const paddedKey = key.padEnd(maxKeyLength, ' ');
+        logger.info(`${chalk.white(paddedKey)} : ${chalk.green.bold(String(value))}`);
+      });
+
+      console.log(); // For spacing
+      exitHandler.success();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error occurred while displaying configuration.';
+      exitHandler.generalError(`❌ ${message}`);
+    }
   });
 
 /**
@@ -179,41 +251,47 @@ program
   .option('--tolerateEmptyResponses <boolean>', 'Enable or disable tolerance for empty responses (true/false)')
   .option('--payloadsPath <path>', 'Set a new path for payload storage')
   .option('--reportsPath <path>', 'Set a new path for reports')
-  .option('--baseUrl <url>', 'Set the base URL for API calls') 
-  .option('--enableMockServer <boolean>', 'Run the Application in Mock Server Mode (tests/mock.json). All responses are sent to http://mockserver:3000') 
+  .option('--baseUrl <url>', 'Set the base URL for API calls')
+  .option('--enableMockServer <boolean>', 'Run the Application in Mock Server Mode (tests/mock.json). All responses are sent to http://mockserver:3000')
   .action((options) => {
-    const changes: any = {};
+    try {
+      const changes: Record<string, any> = {};
 
-    if (options.strictSchema !== undefined) {
-      changes.strictSchema = options.strictSchema === 'true';
-    }
-    if (options.strictValues !== undefined) {
-      changes.strictValues = options.strictValues === 'true';  
-    }
-    if (options.payloadsPath !== undefined) {
-      changes.payloadsPath = options.payloadsPath;
-    }
-    if (options.reportsPath !== undefined) {
-      changes.reportsPath = options.reportsPath;
-    }
-    if (options.tolerateEmptyResponses !== undefined) {
-      changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
-    }
-    if (options.baseUrl !== undefined) {
-      changes.baseUrl = options.baseUrl;
-    }
-    if (options.enableMockServer !== undefined) {
-      changes.enableMockServer = options.enableMockServer === 'true';
-    }
+      if (options.strictSchema !== undefined) {
+        changes.strictSchema = options.strictSchema === 'true';
+      }
+      if (options.strictValues !== undefined) {
+        changes.strictValues = options.strictValues === 'true';
+      }
+      if (options.payloadsPath !== undefined) {
+        changes.payloadsPath = options.payloadsPath;
+      }
+      if (options.reportsPath !== undefined) {
+        changes.reportsPath = options.reportsPath;
+      }
+      if (options.tolerateEmptyResponses !== undefined) {
+        changes.tolerateEmptyResponses = options.tolerateEmptyResponses === 'true';
+      }
+      if (options.baseUrl !== undefined) {
+        changes.baseUrl = options.baseUrl;
+      }
+      if (options.enableMockServer !== undefined) {
+        changes.enableMockServer = options.enableMockServer === 'true';
+      }
 
-    if (Object.keys(changes).length === 0) {
-      logger.info(chalk.yellow('! No changes provided. Use set-config --help for options.\n'));
-      return;
-    }
+      if (Object.keys(changes).length === 0) {
+        exitHandler.invalidArgs('⚠️  No configuration changes provided. Use set-config --help for available options.');
+      }
 
-    ConfigLoader.updateConfig(changes);
-    logger.info(chalk.green('\n✅ Configuration updated successfully!\n'));
+      ConfigLoader.updateConfig(changes);
+      logger.info(chalk.green('\n✅ Configuration updated successfully!\n'));
+      exitHandler.success();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown error while updating configuration.';
+      exitHandler.configError(`❌ ${message}`);
+    }
   });
+
 
 /**
  * Compare two latest payload folders for a given test suite.
@@ -226,26 +304,34 @@ program
   .command('compare')
   .description('Compare the two most recent payload folders and show test results')
   .requiredOption('--testSuite <name>', 'Name of the test suite folder to compare')
-  .action((options, command) => {
-    const testSuite = options.testSuite;
-    if (!testSuite) {
-      logger.error(chalk.red('❌ Missing required option: --testSuite <name>\n'));
-      command.help({ error: true });
-      return;
+  .action((options) => {
+    try {
+      const testSuite = options.testSuite;
+
+      if (!testSuite) {
+        exitHandler.invalidArgs('❌ Missing required option: --testSuite <name>');
+      }
+
+      const comparer = new PayloadComparer(config, logger);
+      const folders = comparer.getLatestTwoPayloadFolders();
+
+      if (!folders) {
+        logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
+        logger.info(chalk.yellow('-> Make sure you have at least two payload runs saved in your payloads directory.\n'));
+        exitHandler.comparisonFailure('Insufficient payload folders for comparison.');
+      }
+
+      const [oldFolder, newFolder] = folders!; // <-- non-null assertion
+
+      comparer.compareFolders(oldFolder, newFolder, testSuite);
+      exitHandler.success('✅ Payload comparison completed.\n');
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Unknown comparison error occurred.';
+      exitHandler.comparisonFailure(`❌ ${message}`);
     }
-
-    const comparer = new PayloadComparer(config, logger);
-    const folders = comparer.getLatestTwoPayloadFolders();
-
-    if (!folders) {
-      logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
-      logger.info(chalk.yellow('-> Make sure you have at least two payload runs saved in your payloads directory.\n'));
-      return;
-    }
-
-    const [oldFolder, newFolder] = folders;
-    comparer.compareFolders(oldFolder, newFolder, testSuite);
   });
+
+
 
 /**
  * Run a full workflow:
@@ -267,7 +353,7 @@ program
 
     if (config.enableMockServer) {
       logger.info('\n  Mock server mode enabled.');
-      
+
       if (options.tests && options.tests !== 'mock.json') {
         logger.warn(`Ignoring passed test file "${options.tests}" — using "mock.json" due to enableMockServer=true`);
       }
@@ -278,13 +364,13 @@ program
     if (!testFile) {
       logger.error(chalk.red('❌ Missing required option: --tests <file>\n'));
       command.help({ error: true });
-      return;
+      exitHandler.invalidArgs('Missing required --tests option');
     }
 
     if (!testSuite) {
       logger.error(chalk.red('❌ Missing required option: --testSuite <name>\n'));
       command.help({ error: true });
-      return;
+      exitHandler.invalidArgs('Missing required --testSuite option');
     }
 
     logger.info(chalk.cyan('\nRunning full test and comparison...\n'));
@@ -295,14 +381,20 @@ program
       await mockServer.start();
     }
 
-    let requests;
+    let requests: IApiRequest[];  // force definite assignment later
+
     try {
-      requests = TestSuiteLoader.loadSuite(testFile, config);
+      const loadedRequests = TestSuiteLoader.loadSuite(testFile, config);
+      if (!loadedRequests) {
+        throw new Error(`Test suite ${testFile} returned undefined or null`);
+      }
+      requests = loadedRequests;
     } catch (err) {
       logger.error(chalk.red(`❌ Failed to load test suite: ${testFile}\n`));
       logger.error(chalk.red('-> Make sure the file exists and contains valid JSON.\n'));
       if (mockServer) await mockServer.stop();
-      return;
+      exitHandler.testSuiteLoadingError(`Failed to load test suite file: ${testFile}`);
+      return;  // just for TS to know exitHandler probably exits
     }
 
     const caller = new ApiCaller(requests, logger, config.baseUrl);
@@ -315,13 +407,17 @@ program
       logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
       logger.info(chalk.yellow('-> Make sure you have at least two payload runs saved in your payloads directory.\n'));
       if (mockServer) await mockServer.stop();
-      return;
+      exitHandler.comparisonFailure('Insufficient payload folders for comparison.');
+      return;  // TS safety
     }
 
+    // At this point, folders is guaranteed non-null with two strings
     const [oldFolder, newFolder] = folders;
     comparer.compareFolders(oldFolder, newFolder, testSuite);
 
     if (mockServer) await mockServer.stop();
+
+    exitHandler.success('Run, compare, and report completed successfully.');
   });
 
 /**
