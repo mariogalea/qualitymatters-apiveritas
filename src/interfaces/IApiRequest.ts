@@ -1,4 +1,4 @@
-export interface ApiRequest {
+export interface IApiRequest {
   name: string;
   url: string;
   method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; // default to GET if not provided

@@ -8,7 +8,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import { ApiRequest } from '../../interfaces/IApiRequest';
+import { IApiRequest } from '../../interfaces/IApiRequest';
 import { Logger } from '../utils/Logger';
 import { IComparerOptions } from '../../interfaces/IComparerOptions';
 
@@ -37,7 +37,7 @@ export class TestSuiteLoader {
    * - Any test entry is missing required fields (`name`, `url`).
    * - JSON parse fails.
    */
-  static loadSuite(testFileName: string, config?: IComparerOptions): ApiRequest[] {
+  static loadSuite(testFileName: string, config?: IComparerOptions): IApiRequest[] {
     const useMock = config?.enableMockServer;
     const actualFile = useMock ? 'mock.json' : testFileName;
     const baseUrl = useMock
@@ -82,7 +82,7 @@ export class TestSuiteLoader {
         };
       });
 
-      return enrichedRequests as ApiRequest[];
+      return enrichedRequests as IApiRequest[];
     } catch (err: any) {
       this.logger.error(`Failed to parse or validate test suite file: ${err.message}`);
       throw err;

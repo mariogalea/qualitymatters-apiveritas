@@ -7,7 +7,7 @@
  */
 
 import axios from 'axios';
-import { ApiRequest } from '../../interfaces/IApiRequest';
+import { IApiRequest } from '../../interfaces/IApiRequest';
 import { ResponseSaver } from '../utils/ResponseSaver';
 import { Logger } from '../utils/Logger';
 import chalk from 'chalk';
@@ -18,7 +18,7 @@ type AxiosRequestConfig = Parameters<typeof axios>[0];
  * Executes a list of API requests, logs outcomes, and saves payloads for contract testing.
  */
 export class ApiCaller {
-  private requests: ApiRequest[];
+  private requests: IApiRequest[];
   private logger: Logger;
 
   /**
@@ -28,7 +28,7 @@ export class ApiCaller {
    * @param logger - A logger instance for structured logging. Defaults to a new Logger instance.
    * @param baseUrl - The base URL to prepend to all request paths unless overridden per request.
    */
-  constructor(requests: ApiRequest[], logger: Logger = new Logger(), private baseUrl: string = '') {
+  constructor(requests: IApiRequest[], logger: Logger = new Logger(), private baseUrl: string = '') {
     this.requests = requests;
     this.logger = logger;
     this.baseUrl = baseUrl;
