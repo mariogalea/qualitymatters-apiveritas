@@ -48,17 +48,33 @@ jobs:
       - name: Run ApiVeritas config
         run: npx apiveritas config
 
+      - name: Download previous payloads artifact (if available)
+        uses: actions/download-artifact@v4
+        with:
+          name: latest-payloads
+          path: payloads  # <- restore exactly as `payloads/`
+        continue-on-error: true
+
       - name: Run ApiVeritas tests and store new payloads
         run: npx apiveritas test --tests mock.json
 
       - name: Compare with previous payloads (if available)
         run: |
-          if [ -d "previous-payloads" ]; then
-            echo "Running yet another comparison with previous payloads..."
+          if [ -d "payloads" ]; then
+            echo "Running comparison of latest two payload folders in payloads/"
             npx apiveritas compare --testSuite mock
           else
             echo "No previous payloads found; skipping comparison."
           fi
+
+      - name: Upload new payloads for next run
+        uses: actions/upload-artifact@v4
+        with:
+          name: latest-payloads
+          path: payloads/
+          retention-days: 7
+
+
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
