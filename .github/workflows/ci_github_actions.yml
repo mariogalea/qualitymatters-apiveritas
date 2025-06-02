@@ -58,7 +58,7 @@ jobs:
             echo "Only $count payload folder(s) found, skipping comparison."
           fi
 
-      # Upload all payload folders including the new one for future runs
+      # Upload all payload folders including the new one for future runss
       - name: Upload payloads artifact
         uses: actions/upload-artifact@v4
         with:
