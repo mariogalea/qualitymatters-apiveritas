@@ -5,5 +5,5 @@
   "payloadsPath": "C:\\dev\\qualitymatters-apiveritas\\payloads",
   "reportsPath": "C:\\dev\\qualitymatters-apiveritas\\reports",
   "baseUrl": "http://localhost:8080",
-  "enableMockServer": false
+  "enableMockServer": true
 }
