@@ -54,7 +54,7 @@ jobs:
       - name: Compare with previous payloads (if available)
         run: |
           if [ -d "previous-payloads" ]; then
-            echo "Running comparison with previous payloads..."
+            echo "Running yet another comparison with previous payloads..."
             npx apiveritas compare --testSuite mock
           else
             echo "No previous payloads found; skipping comparison."
