@@ -38,18 +38,8 @@ jobs:
       - name: List dist directory
         run: ls -R dist
 
-      - name: Wait for mock server to start
-        run: |
-          for i in {1..10}; do
-            if nc -z localhost 3000; then
-              echo "Mock server is up!"
-              exit 0
-            fi
-            echo "Waiting for mock server..."
-            sleep 2
-          done
-          echo "Mock server failed to start in time"
-          exit 1
+      - name: Run ApiVeritas tests
+        run: npx apiveritas config
 
       - name: Run ApiVeritas tests
         run: npx apiveritas test --tests mock.json
