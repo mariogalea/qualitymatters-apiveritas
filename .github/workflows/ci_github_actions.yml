@@ -42,7 +42,7 @@ jobs:
         run: npx apiveritas config
 
       - name: Run ApiVeritas tests
-        run: npx apiveritas test --tests mock.json
+        run: npx apiveritas run --tests mock.json --testSuite mock
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
