@@ -22,9 +22,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: List files in repo root
-        run: ls -la
-
       - name: Enable mock server mode in config.json
         run: |
           jq '.enableMockServer = true' src/config/config.json > temp && mv temp src/config/config.json
@@ -32,54 +29,47 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      # Download previous payloads *once*, restoring to the exact folder ApiVeritas expects
       - name: Download previous payloads artifact (if available)
         uses: actions/download-artifact@v4
         with:
           name: latest-payloads
-          path: previous-payloads
+          path: payloads
         continue-on-error: true
 
       - name: Start Mock Server
         run: npm run start:mock &
 
-      - name: List dist directory
-        run: ls -R dist
-
       - name: Run ApiVeritas config
         run: npx apiveritas config
 
-      - name: Download previous payloads artifact (if available)
-        uses: actions/download-artifact@v4
-        with:
-          name: latest-payloads
-          path: payloads  # <- restore exactly as `payloads/`
-        continue-on-error: true
-
+      # Run tests, which create a new timestamped payload folder inside `payloads/`
       - name: Run ApiVeritas tests and store new payloads
         run: npx apiveritas test --tests mock.json
 
-      - name: Compare with previous payloads (if available)
+      # Run comparison only if at least 2 payload folders exist inside `payloads/`
+      - name: Compare payloads
         run: |
-          if [ -d "payloads" ]; then
-            echo "Running comparison of latest two payload folders in payloads/"
+          count=$(find payloads -mindepth 1 -maxdepth 1 -type d | wc -l)
+          if [ "$count" -ge 2 ]; then
+            echo "Found $count payload folders. Running comparison..."
             npx apiveritas compare --testSuite mock
           else
-            echo "NO previous payloads found; skipping comparison."
+            echo "Only $count payload folder(s) found, skipping comparison."
           fi
 
-      - name: Upload new payloads for next run
+      # Upload all payload folders including the new one for future runs
+      - name: Upload payloads artifact
         uses: actions/upload-artifact@v4
         with:
           name: latest-payloads
           path: payloads/
           retention-days: 7
 
-
-
+      # Upload the HTML report artifact as before
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         with:
           name: apiveritas-report
           path: reports/
           retention-days: 3
-
