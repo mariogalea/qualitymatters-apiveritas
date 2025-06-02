@@ -49,7 +49,7 @@ jobs:
         run: npx apiveritas config
 
       - name: Run ApiVeritas tests and store new payloads
-        run: npx apiveritas run --tests mock.json --testSuite mock
+        run: npx apiveritas test --tests mock.json
 
       - name: Compare with previous payloads (if available)
         run: |
