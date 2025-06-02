@@ -47,29 +47,3 @@ jobs:
       - name: Run ApiVeritas tests and store new payloads
         run: npx apiveritas test --tests mock.json
 
-      # Run comparison only if at least 2 payload folders exist inside `payloads/`
-      - name: Compare payloads
-        run: |
-          count=$(find payloads -mindepth 1 -maxdepth 1 -type d | wc -l)
-          if [ "$count" -ge 2 ]; then
-            echo "Found $count payload folders. Running comparison..."
-            npx apiveritas compare --testSuite mock
-          else
-            echo "Only $count payload folder(s) found, skipping comparison."
-          fi
-
-      # Upload all payload folders including the new one for future runsss
-      - name: Upload payloads artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: latest-payloads
-          path: payloads/
-          retention-days: 7
-
-      # Upload the HTML report artifact as before
-      - name: Upload HTML Report
-        uses: actions/upload-artifact@v4
-        with:
-          name: apiveritas-report
-          path: reports/
-          retention-days: 3
