@@ -64,7 +64,7 @@ jobs:
             echo "Running comparison of latest two payload folders in payloads/"
             npx apiveritas compare --testSuite mock
           else
-            echo "No previous payloads found; skipping comparison."
+            echo "NO previous payloads found; skipping comparison."
           fi
 
       - name: Upload new payloads for next run
