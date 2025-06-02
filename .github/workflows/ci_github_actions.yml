@@ -32,6 +32,13 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Download previous payloads artifact (if available)
+        uses: actions/download-artifact@v4
+        with:
+          name: latest-payloads
+          path: previous-payloads
+        continue-on-error: true
+
       - name: Start Mock Server
         run: npm run start:mock &
 
@@ -41,14 +48,22 @@ jobs:
       - name: Run ApiVeritas config
         run: npx apiveritas config
 
-      - name: Run ApiVeritas tests
-        run: npx apiveritas test --tests mock.json 
-
-      - name: Run ApiVeritas tests with comparison
+      - name: Run ApiVeritas tests and store new payloads
         run: npx apiveritas run --tests mock.json --testSuite mock
+
+      - name: Compare with previous payloads (if available)
+        run: |
+          if [ -d "previous-payloads" ]; then
+            echo "Running comparison with previous payloads..."
+            npx apiveritas compare --testSuite mock
+          else
+            echo "No previous payloads found; skipping comparison."
+          fi
 
       - name: Upload HTML Report
         uses: actions/upload-artifact@v4
         with:
           name: apiveritas-report
           path: reports/
+          retention-days: 3
+
