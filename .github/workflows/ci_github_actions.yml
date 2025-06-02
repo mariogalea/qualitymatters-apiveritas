@@ -22,9 +22,12 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: List files in repo root
+        run: ls -la
+
       - name: Enable mock server mode in config.json
         run: |
-          jq '.enableMockServer = true' config.json > temp && mv temp config.json
+          jq '.enableMockServer = true' src/config/config.json > temp && mv temp src/config/config.json
 
       - name: Build TypeScript
         run: npm run build
