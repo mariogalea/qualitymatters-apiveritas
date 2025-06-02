@@ -9,7 +9,8 @@
   "scripts": {
     "build": "tsc && node scripts/add-shebang.js",
     "start": "npm run build && node dist/cli.js",
-    "watch": "tsc --watch"
+    "watch": "tsc --watch",
+    "start:mock": "node dist/core/services/MockServer.js"
   },
   "keywords": [],
   "author": "",

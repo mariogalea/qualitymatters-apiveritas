@@ -33,7 +33,10 @@ jobs:
         run: npm run build
 
       - name: Start Mock Server
-        run: node dist/mock-server.js &
+        run: npm run start:mock &
+
+      - name: List dist directory
+        run: ls -R dist
 
       - name: Wait for mock server to start
         run: |
