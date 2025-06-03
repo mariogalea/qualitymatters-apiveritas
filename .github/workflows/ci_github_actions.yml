@@ -1,4 +1,4 @@
-name: ApiVeritas Contract Tests (Mock Mode)
+name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload)
 
 on:
   push:
@@ -9,6 +9,13 @@ on:
 jobs:
   contract-test:
     runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
 
     steps:
       - name: Checkout code
@@ -29,13 +36,8 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
-      # Download previous payloads *once*, restoring to the exact folder ApiVeritas expects
-      - name: Download previous payloads artifact (if available)
-        uses: actions/download-artifact@v4
-        with:
-          name: latest-payloads
-          path: payloads
-        continue-on-error: true
+      - name: Install AWS CLI
+        run: sudo apt-get install -y awscli
 
       - name: Start Mock Server
         run: npm run start:mock &
@@ -43,7 +45,33 @@ jobs:
       - name: Run ApiVeritas config
         run: npx apiveritas config
 
-      # Run tests, which create a new timestamped payload folder inside `payloads/`
-      - name: Run ApiVeritas tests and store new payloads
+      - name: Run ApiVeritas test (generates new local payload)
         run: npx apiveritas test --tests mock.json
 
+      - name: Download previous payloads from Cloudflare R2
+        run: |
+          mkdir -p payloads/previous
+          aws s3 sync s3://$R2_BUCKET/ payloads/previous/ --endpoint-url $R2_ENDPOINT || echo "No previous payloads found."
+
+      - name: Copy previous payloads into expected folder layout
+        run: |
+          if [ -d "payloads/previous" ]; then
+            cp -r payloads/previous/* payloads/
+          fi
+
+      - name: Run ApiVeritas comparison
+        run: |
+          npx apiveritas compare --testSuite mock
+
+      - name: Upload new payloads to Cloudflare R2
+        if: success()  # Only upload if comparison succeeded
+        run: |
+          aws s3 sync payloads/ s3://$R2_BUCKET/ --endpoint-url $R2_ENDPOINT
+
+      - name: Upload HTML Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: apiveritas-report
+          path: reports/
+          retention-days: 3
