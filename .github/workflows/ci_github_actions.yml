@@ -76,3 +76,33 @@ jobs:
           echo "Uploading payloads to R2..."
           aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/" \
             --recursive --endpoint-url $R2_ENDPOINT
+          echo "First upload done, stopping further steps."
+          exit 0
+
+      - name: Download payloads from R2 for comparison
+        if: steps.check_r2.outputs.exists == 'true'
+        run: |
+          mkdir -p payloads/r2_download/mock
+          aws s3 sync s3://$R2_BUCKET/mock payloads/r2_download/mock --endpoint-url $R2_ENDPOINT
+
+      - name: Prepare payloads for comparison
+        if: steps.check_r2.outputs.exists == 'true'
+        run: |
+          echo "Setting up downloaded payloads for comparison..."
+          mkdir -p payloads/latest/mock
+          cp -r payloads/r2_download/mock/* payloads/latest/mock/
+
+      - name: Run comparison
+        if: steps.check_r2.outputs.exists == 'true'
+        run: |
+          npx apiveritas compare --testSuite mock
+
+      - name: Conditional upload after successful comparison
+        if: steps.check_r2.outputs.exists == 'true' && success()
+        run: |
+          echo "Comparison successful. Uploading new payloads to R2..."
+          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/" \
+            --recursive --endpoint-url $R2_ENDPOINT
+
+
+      
