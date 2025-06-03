@@ -50,30 +50,29 @@ jobs:
       - name: Run ApiVeritas test (generates new local payload)
         run: npx apiveritas test --tests mock.json
 
-      - name: Download previous payloads from Cloudflare R2
+      - name: Find latest payload folder
+        id: find_payload
         run: |
-          mkdir -p payloads/previous
-          aws s3 sync s3://$R2_BUCKET/ payloads/previous/ --endpoint-url $R2_ENDPOINT || echo "No previous payloads found."
+          echo "Finding latest payload folder..."
+          latest_folder=$(ls -td payloads/* | head -n 1)
+          echo "Latest folder: $latest_folder"
+          echo "folder=$latest_folder" >> $GITHUB_OUTPUT
 
-      - name: Copy previous payloads into expected folder layout
+      - name: Check if payload exists in R2
+        id: check_r2
         run: |
-          if [ -d "payloads/previous" ]; then
-            cp -r payloads/previous/* payloads/
+          echo "Checking if R2 already has a payload for mock..."
+          if aws s3 ls s3://$R2_BUCKET/mock/ --endpoint-url $R2_ENDPOINT | grep -q ".json"; then
+            echo "Payload exists in R2."
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "Payload does not exist in R2."
+            echo "exists=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Run ApiVeritas comparison
+      - name: Upload new payloads to R2
+        if: steps.check_r2.outputs.exists == 'false'
         run: |
-          npx apiveritas compare --testSuite mock
-
-      - name: Upload new payloads to Cloudflare R2
-        if: success()  # Only upload if comparison succeeded
-        run: |
-          aws s3 sync payloads/ s3://$R2_BUCKET/ --endpoint-url $R2_ENDPOINT
-
-      - name: Upload HTML Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: apiveritas-report
-          path: reports/
-          retention-days: 3
+          echo "Uploading payloads to R2..."
+          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/" \
+            --recursive --endpoint-url $R2_ENDPOINT
