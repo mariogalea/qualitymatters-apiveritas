@@ -1,7 +1,7 @@
 # APIVERITAS
 
 
-[![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci.yml)
+[![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)
 [![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
 
 **ApiVeritas** — because your contracts should tell the truth.
