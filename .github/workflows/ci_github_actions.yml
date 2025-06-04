@@ -1,4 +1,4 @@
-name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload - Demo Failure)
+name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload)
 
 on:
   push:
@@ -47,62 +47,49 @@ jobs:
       - name: Run ApiVeritas config
         run: npx apiveritas config
 
-      - name: Run ApiVeritas test (generates new local payload)
+      - name: Run ApiVeritas test
         run: npx apiveritas test --tests mock.json
 
       - name: Find latest payload folder
         id: find_payload
         run: |
-          echo "Finding latest payload folder..."
           latest_folder=$(ls -td payloads/* | head -n 1)
           echo "Latest folder: $latest_folder"
           echo "folder=$latest_folder" >> $GITHUB_OUTPUT
-
-      - name: Check if payload exists in R2
-        id: check_r2
+      
+      - name: Upload new payload to R2 (timestamped)
         run: |
-          echo "Checking if R2 already has a payload for mock..."
-          if aws s3 ls s3://$R2_BUCKET/mock/ --endpoint-url $R2_ENDPOINT | grep -q ".json"; then
-            echo "Payload exists in R2."
-            echo "exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "Payload does not exist in R2."
-            echo "exists=false" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Upload new payloads to R2
-        if: steps.check_r2.outputs.exists == 'false'
-        run: |
-          echo "Uploading payloads to R2..."
-          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/" \
+          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/$(basename ${{ steps.find_payload.outputs.folder }})/" \
             --recursive --endpoint-url $R2_ENDPOINT
-          echo "First upload done, stopping further steps."
+
+      - name: List payload folders in R2
+        id: list_folders
+        run: |
+          folder_list=$(aws s3 ls s3://$R2_BUCKET/mock/ --endpoint-url $R2_ENDPOINT | awk '{print $2}' | sed 's#/##')
+          folder_count=$(echo "$folder_list" | wc -l)
+          echo "Found $folder_count folders: $folder_list"
+          echo "folders=$folder_list" >> $GITHUB_OUTPUT
+          echo "count=$folder_count" >> $GITHUB_OUTPUT
+
+      - name: Exit if only one folder
+        if: steps.list_folders.outputs.count == '1'
+        run: |
+          echo "Only one payload available in R2, skipping comparison."
           exit 0
 
-      - name: Download payloads from R2 for comparison
-        if: steps.check_r2.outputs.exists == 'true'
+      - name: Download last two payload folders from R2
         run: |
-          mkdir -p payloads/r2_download/mock
-          aws s3 sync s3://$R2_BUCKET/mock payloads/r2_download/mock --endpoint-url $R2_ENDPOINT
+          folders=$(echo "${{ steps.list_folders.outputs.folders }}" | sort | tail -n 2)
+          latest=$(echo "$folders" | tail -n 1)
+          previous=$(echo "$folders" | head -n 1)
+          echo "Latest: $latest"
+          echo "Previous: $previous"
+          
+          mkdir -p payloads/latest payloads/previous
+          aws s3 sync s3://$R2_BUCKET/mock/$latest/ payloads/latest/mock/ --endpoint-url $R2_ENDPOINT
+          aws s3 sync s3://$R2_BUCKET/mock/$previous/ payloads/previous/mock/ --endpoint-url $R2_ENDPOINT
 
-      - name: Prepare payloads for comparison
-        if: steps.check_r2.outputs.exists == 'true'
+      - name: Run comparison between latest and previous
         run: |
-          echo "Setting up downloaded payloads for comparison..."
-          mkdir -p payloads/latest/mock
-          cp -r payloads/r2_download/mock/* payloads/latest/mock/
-
-      - name: Run comparison
-        if: steps.check_r2.outputs.exists == 'true'
-        run: |
-          npx apiveritas compare --testSuite mock
-
-      - name: Conditional upload after successful comparison
-        if: steps.check_r2.outputs.exists == 'true' && success()
-        run: |
-          echo "Comparison successful. Uploading new payloads to R2..."
-          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" "s3://$R2_BUCKET/mock/" \
-            --recursive --endpoint-url $R2_ENDPOINT
-
-
+          npx apiveritas compare --testSuite mock --payloads-path payloads/latest --compare-with payloads/previous
       
