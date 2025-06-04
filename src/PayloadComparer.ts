@@ -94,7 +94,7 @@ export class PayloadComparer {
    * If mock server is enabled in config, this will be overridden to 'mock'.
    * @returns {void}
    */
-  compareFolders(oldFolder: string, newFolder: string, testSuite?: string): boolean {
+  compareFolders( newFolder: string, oldFolder: string, testSuite?: string): boolean {
     if (this.config.enableMockServer) {
       testSuite = 'mock';
     }
