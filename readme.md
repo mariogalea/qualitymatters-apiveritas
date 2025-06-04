@@ -1,74 +1,32 @@
-# ApiVeritas
 
-ApiVeritas is a consumer-driven contract testing tool that adopts a black-box approach, enabling consumers to independently verify API contract integrity. 
+[![license](https://img.shields.io/npm/l/apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/blob/main/LICENSE)
+[![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
 
-It focuses on schema and data validation to ensure that APIs meet the expectations of their consumers.
+**ApiVeritas** — because your contracts should tell the truth.
 
-**Work In Progress**  
-This project is currently under active development. Features and APIs may change, and documentation is being updated continuously. Project is also intended to be an npm package for global usage.
+---
 
-Please use with caution and feel free to contribute or provide feedback!
+## ✨ Feature Highlights
 
-## Features
+- 🧪 Validate API responses against JSON schemas
+- 📂 Compare production vs development payloads
+- 📝 Configurable via `config.json`
+- 📊 Generate human-friendly HTML reports
+- 🔁 CI/CD-friendly workflow
+- 🧱 Built with TypeScript and OOP principles
+- 🧪 Optional mock server for isolated testing
 
-- **Consumer-Driven Contract Testing**: Allows consumers to define and verify API contracts without requiring access to the provider's codebase.
-- **Schema Validation**: Ensures that API responses conform to predefined schemas.
-- **Data Validation**: Verifies that the data returned by APIs meets specified constraints and expectations.
+---
 
-## Installation
-
-To install ApiVeritas, clone the repository and install the necessary dependencies:
-
-```bash
-git clone https://github.com/mariogalea/qualitymatters-apiveritas.git
-cd qualitymatters-apiveritas
-npm install -g 
-npm run build
-npm link
-```
-
-
-## Usage
-ApiVeritas allows you to define consumer expectations and validate API responses against those expectations through a series of steps:
-
-#### Define your API contract tests
-Create JSON test suites specifying the expected schema and response characteristics.
-
-#### Capture API responses
-Use the tool to call the target APIs and save actual responses for comparison.
-
-#### Run validation
-ApiVeritas compares the actual API responses against the defined contracts, checking schema integrity, data types, and response status codes.
-
-#### Review reports
-After running tests, generate detailed HTML reports highlighting any mismatches or contract violations.
-
-## Commands
+## 📦 Installation
 
 ```bash
-  test [options]        Run all API requests and save responses
-  list-tests            List all available JSON test files in the tests/ folder
-  payloads-path         Show where the payloads are stored
-  reports-path          Show where HTML reports are stored
-  config                Show current configuration loaded from config.json
-  set-config [options]  Update one or more config values
-  compare [options]     Compare the two most recent payload folders and show test results
-  run [options]         Run tests, compare payloads, and report results
-  notest                A little surprise inspired by Pulp Fiction
-  help [command]        display help for command
-```
-
-## Usage
-
-Run the CLI with the command:
-
-```bash
-apiveritas <command> [options]
+npm install -g apiveritas
 ```
 
 ---
 
-## Commands
+## 🚀 Usage
 
 ### test
 
@@ -134,13 +92,13 @@ Update configuration values interactively or via flags.
 
 Options:
 
-- `--strictSchema <boolean>`: Enable/disable strict schema validation
-- `--strictValues <boolean>`: Enable/disable strict values validation
-- `--tolerateEmptyResponses <boolean>`: Enable/disable tolerance for empty responses
-- `--payloadsPath <path>`: Set a new path for payload storage
-- `--reportsPath <path>`: Set a new path for reports
-- `--baseUrl <url>`: Set the base URL for API calls
-- `--enableMockServer <boolean>`: Enable mock server mode (`true` or `false`)
+- `--strictSchema <boolean>`
+- `--strictValues <boolean>`
+- `--tolerateEmptyResponses <boolean>`
+- `--payloadsPath <path>`
+- `--reportsPath <path>`
+- `--baseUrl <url>`
+- `--enableMockServer <boolean>`
 
 Example:
 
@@ -194,17 +152,49 @@ apiveritas notest
 
 ---
 
-## Configuration File
+## ⚙️ Configuration File
 
 Located at `src/config/config.json`. Use the `config` and `set-config` commands to view and update.
 
 ---
 
-## Mock Server Mode
+## 🧪 Mock Server Mode
 
 When enabled (`enableMockServer: true`), ApiVeritas runs an internal mock server and uses `mock.json` test suite by default. This allows testing without a live API.
 
 ---
+
+## ✅ CI Setup Snippet (GitHub Actions)
+
+```yaml
+name: CI
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  verify-contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install ApiVeritas globally
+        run: npm install -g .
+
+      - name: Run contract tests
+        run: apiveritas run --tests mock.json --testSuite mock
+```
+
 
 ## Exit Codes
 
@@ -221,17 +211,14 @@ ApiVeritas uses the following exit codes to indicate the result of CLI operation
 | 6         | Comparison failure (payload diff found)   |
 | 7         | Mock server error                         |
 
+---
 
-## Author
+## 👨‍💻 Author
 
-Mario Galea
+Mario Galea – [GitHub](https://github.com/mariogalea)
 
 ---
 
+## 📄 License
 
-## License
-
-ApiVeritas is licensed under the [MIT License](https://opensource.org/licenses/MIT).
-
-
-
+MIT © 2025 Mario Galea
