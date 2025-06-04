@@ -1,4 +1,4 @@
-name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload)
+name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload - Trigger a test failure)
 
 on:
   push:
