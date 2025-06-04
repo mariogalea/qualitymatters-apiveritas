@@ -1,5 +1,7 @@
+# APIVERITAS
 
-[![license](https://img.shields.io/npm/l/apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/blob/main/LICENSE)
+
+[![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci.yml)
 [![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
 
 **ApiVeritas** — because your contracts should tell the truth.
@@ -8,13 +10,13 @@
 
 ## ✨ Feature Highlights
 
-- 🧪 Validate API responses against JSON schemas
-- 📂 Compare production vs development payloads
-- 📝 Configurable via `config.json`
-- 📊 Generate human-friendly HTML reports
-- 🔁 CI/CD-friendly workflow
-- 🧱 Built with TypeScript and OOP principles
-- 🧪 Optional mock server for isolated testing
+- Validate API responses against JSON schemas
+- Compare production vs development payloads
+- Configurable via `config.json`
+- Generate human-friendly HTML reports
+- CI/CD-friendly workflow
+- Built with TypeScript and OOP principles
+- Optional mock server for isolated testing
 
 ---
 
@@ -213,12 +215,12 @@ ApiVeritas uses the following exit codes to indicate the result of CLI operation
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Mario Galea – [GitHub](https://github.com/mariogalea)
 
 ---
 
-## 📄 License
+## License
 
 MIT © 2025 Mario Galea
