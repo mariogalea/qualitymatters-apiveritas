@@ -321,15 +321,22 @@ program
         exitHandler.comparisonFailure('Insufficient payload folders for comparison.');
       }
 
-      const [oldFolder, newFolder] = folders!; // <-- non-null assertion
+      const [oldFolder, newFolder] = folders;
 
-      comparer.compareFolders(oldFolder, newFolder, testSuite);
-      exitHandler.success('✅ Payload comparison completed.\n');
+      const isDifferent = comparer.compareFolders(oldFolder, newFolder, testSuite);
+
+      if (isDifferent) {
+        exitHandler.comparisonFailure('❌ Differences detected in payload comparison.');
+      } else {
+        exitHandler.success('✅ Payload comparison completed with no differences.');
+      }
+
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Unknown comparison error occurred.';
       exitHandler.comparisonFailure(`❌ ${message}`);
     }
   });
+
 
 
 

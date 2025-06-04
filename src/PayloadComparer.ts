@@ -94,7 +94,7 @@ export class PayloadComparer {
    * If mock server is enabled in config, this will be overridden to 'mock'.
    * @returns {void}
    */
-  compareFolders(oldFolder: string, newFolder: string, testSuite?: string): void {
+  compareFolders(oldFolder: string, newFolder: string, testSuite?: string): boolean {
     if (this.config.enableMockServer) {
       testSuite = 'mock';
     }
@@ -118,12 +118,12 @@ export class PayloadComparer {
 
     if (!fs.existsSync(oldPath)) {
       this.logger.warn(`Old folder path does not exist: ${oldPath}`);
-      return;
+      return false;
     }
 
     if (!fs.existsSync(newPath)) {
       this.logger.warn(`New folder path does not exist: ${newPath}`);
-      return;
+      return false;
     }
 
     const files = fs.readdirSync(oldPath).filter((file) => file.endsWith('.json'));
@@ -132,10 +132,10 @@ export class PayloadComparer {
       this.logger.warn('No payload files found in the old folder to compare.');
       console.log();
       this.logger.info(chalk.bgYellow.black('WARNING - NO FILES TO COMPARE'));
-      return;
+      return false;
     }
 
-    let anyDifferences = false;
+    let isDifferent = false;
     let matchedCount = 0;
     let diffCount = 0;
 
@@ -147,7 +147,7 @@ export class PayloadComparer {
       const newFilePath = path.join(newPath, file);
 
       if (!fs.existsSync(newFilePath)) {
-        anyDifferences = true;
+        isDifferent = true;
         diffCount++;
         results.push({
           fileName: file,
@@ -178,7 +178,7 @@ export class PayloadComparer {
       }
 
       if (!this.options.tolerateEmptyResponses && (oldIsEmpty || newIsEmpty)) {
-        anyDifferences = true;
+        isDifferent = true;
         diffCount++;
         const diffs = [
           ...(oldIsEmpty ? ['X Old data is not a valid object. Got empty or missing.'] : []),
@@ -213,7 +213,7 @@ export class PayloadComparer {
       if (matched) {
         matchedCount++;
       } else {
-        anyDifferences = true;
+        isDifferent = true;
         diffCount++;
       }
 
@@ -244,7 +244,7 @@ export class PayloadComparer {
     const maxKeyLength = Math.max(...Object.keys(this.config).map(key => key.length));
 
     console.log();
-    if (!anyDifferences) {
+    if (!isDifferent) {
       this.logger.info(chalk.bgGreen.bold('SUCCESS - ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
     } else {
       this.logger.info(chalk.bgRed('FAILURE - NOT ALL PAYLOAD FILES MATCH WITH SPECIFIED CONFIG'));
@@ -268,6 +268,9 @@ export class PayloadComparer {
 
     const reporter = new HtmlReporter();
     reporter.generateReport(oldFolder, newFolder, results);
+
+    return isDifferent;
+
   }
 
   /**
