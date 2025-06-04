@@ -106,5 +106,5 @@ jobs:
         
       - name: Run comparison between latest and previous
         run: |
-          npx apiveritas compare --testSuite mock --payloads-path payloads/latest --compare-with payloads/previous
+          npx apiveritas compare --testSuite mock
       
