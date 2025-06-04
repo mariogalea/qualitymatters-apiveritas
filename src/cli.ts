@@ -319,6 +319,7 @@ program
         logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
         logger.info(chalk.yellow('-> Make sure you have at least two payload runs saved in your payloads directory.\n'));
         exitHandler.comparisonFailure('Insufficient payload folders for comparison.');
+        return;
       }
 
       const [oldFolder, newFolder] = folders;
