@@ -1,4 +1,4 @@
-name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload - DEMO)
+name: ApiVeritas Contract Tests (Mock Mode + R2 Controlled Upload)
 
 on:
   push:
