@@ -4,31 +4,111 @@
 [![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)
 [![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
 
-**ApiVeritas** — because your contracts should tell the truth.
+**APIVERITAS** — Because your endpoints shouldn’t gaslight your frontend.
 
----
+A lightweight, CI-friendly contract testing tool for RESTful APIs. APIVERITAS ensures that your API responses stay consistent, honest, and predictable across environments and deployments.   
 
-## ✨ Feature Highlights
+<br>
+<br>
 
-- Validate API responses against JSON schemas
-- Compare production vs development payloads
-- Configurable via `config.json`
-- Generate human-friendly HTML reports
-- CI/CD-friendly workflow
-- Built with TypeScript and OOP principles
-- Optional mock server for isolated testing
+## Feature Highlights
 
----
+- **Schema Validation**  
+  Validate API responses against strict or flexible JSON Schemas to ensure structural integrity and type correctness.
 
-## 📦 Installation
+- **Payload Comparison**  
+  Compare live (production/dev) API responses against baseline payloads to detect unexpected changes and regressions.
+
+- **Configurable Test Suites**  
+  Customize behavior using a `config.json` file — control schema strictness, mock server usage, report paths, and more.
+
+- **HTML Reporting**  
+  Generate clear, collapsible, and human-readable HTML reports with inline diffs for easy debugging.
+
+- **CI/CD Integration**  
+  Designed to plug seamlessly into your CI pipelines — fail builds when contracts are broken, and track API integrity over time.
+
+- **Clean Architecture**  
+  Built with modular, object-oriented TypeScript for extensibility, maintainability, and clean separation of concerns.
+
+- **Mock Server Support**  
+  Use an optional mock server with predefined responses for testing in isolated or offline environments — ideal for CI and sandbox testing.
+
+
+<br>
+<br>
+
+## Installation
+APIVERITAS can be installed in different ways - either globally or locally.  
+
+
+### Global Installation
+
+To install APIVERITAS globally:
 
 ```bash
 npm install -g apiveritas
 ```
 
----
+#### Why use `-g`?
 
-## 🚀 Usage
+Using the `-g` flag installs APIVERITAS globally, making the `apiveritas` command available from anywhere on your system. This is useful when:
+
+- You want to run the CLI across multiple projects.
+- You're integrating it into global workflows or CI/CD pipelines.
+- You prefer not to manage a local dependency for every individual project.
+
+Global installation provides convenience and consistency, especially for tools designed to work across repositories or environments.
+
+
+### Local Installation
+
+You can also install APIVERITAS as a local development dependency:
+
+```bash
+npm install --save-dev apiveritas
+```
+
+#### Why use `--save-dev`?
+
+- You want tighter version control per project.
+- You prefer not to install the CLI globally.
+- You're sharing the project with collaborators or CI systems that use npm ci
+
+<br>
+<br>
+
+## Usage
+
+ApiVeritas provides a straightforward CLI with commands to manage and validate your API contracts efficiently. 
+
+You can run commands to execute tests, generate reports, manage payload snapshots, and configure your testing environment. Each command is designed to integrate seamlessly into your development workflow and CI/CD pipelines.
+
+Below are the primary CLI commands you’ll use to get started and maintain API contract integrity.
+
+```bash
+Usage: apiveritas [options] [command]
+
+
+A lightweight CLI tool for API contract testing
+
+Options:
+  -V, --version         output the version number
+  -h, --help            display help for command
+
+Commands:
+  test [options]        Run all API requests and save responses
+  list-tests            List all available JSON test files in the tests/ folder
+  payloads-path         Show where the payloads are stored
+  reports-path          Show where HTML reports are stored
+  config                Show current configuration loaded from config.json
+  set-config [options]  Update one or more config values
+  compare [options]     Compare the two most recent payload folders and show test results
+  run [options]         Run tests, compare payloads, and report results
+  notest                A little surprise inspired by Pulp Fiction
+  help [command]        display help for command
+  ```
+<br>
 
 ### test
 
@@ -44,9 +124,9 @@ Example:
 apiveritas test --tests bookings.json
 ```
 
-If mock server mode is enabled, the test suite will default to `mock.json`.
+*If mock server mode is enabled, the test suite will default to `mock.json`.
 
----
+<br>
 
 ### list-tests
 
@@ -56,7 +136,7 @@ List all available JSON test files in the `tests/` directory.
 apiveritas list-tests
 ```
 
----
+<br>
 
 ### payloads-path
 
@@ -66,7 +146,7 @@ Show the current path where payloads are stored.
 apiveritas payloads-path
 ```
 
----
+<br>
 
 ### reports-path
 
@@ -76,7 +156,7 @@ Show the current path where HTML reports are stored.
 apiveritas reports-path
 ```
 
----
+<br>
 
 ### config
 
@@ -86,7 +166,7 @@ Display the current loaded configuration from `config.json`.
 apiveritas config
 ```
 
----
+<br>
 
 ### set-config
 
@@ -102,13 +182,38 @@ Options:
 - `--baseUrl <url>`
 - `--enableMockServer <boolean>`
 
+#### Configuration Flags
+
+- `--strictSchema <boolean>`  
+  Enforce strict JSON schema validation. When `true`, any deviation from the defined schema will cause the test to fail.  When `false`, added json properties are permitted (missing ones will fail the comparison test).
+
+- `--strictValues <boolean>`  
+  Enforce strict value matching. When `true`, differences in response values (beyond schema) will cause test failures.
+
+- `--tolerateEmptyResponses <boolean>`  
+  Allow empty API responses without failing the test. Useful when some endpoints may legitimately return empty payloads.
+
+- `--payloadsPath <path>`  
+  Shows the directory path where API response payloads are stored for comparison and reference.
+
+- `--reportsPath <path>`  
+  Shows the directory path where HTML test reports are saved after comparison runs.
+
+- `--baseUrl <url>`  
+  Define the base URL of the API server to be tested.
+
+- `--enableMockServer <boolean>`  
+  Enable or disable the internal mock server. When `true`, tests use mock responses instead of hitting a live API.
+
+
+
 Example:
 
 ```bash
 apiveritas set-config --strictSchema true --baseUrl http://localhost:8080
 ```
 
----
+<br>
 
 ### compare
 
@@ -124,7 +229,7 @@ Example:
 apiveritas compare --testSuite bookings
 ```
 
----
+<br>
 
 ### run
 
@@ -140,9 +245,9 @@ Example:
 apiveritas run --tests bookings.json --testSuite bookings
 ```
 
-If mock server mode is enabled, the test suite will default to `mock.json`.
+*If mock server mode is enabled, the test suite will default to `mock.json`, targeting base url http://localhost:3000
 
----
+<br>
 
 ### notest
 
@@ -152,19 +257,15 @@ A fun easter egg inspired by *Pulp Fiction*.
 apiveritas notest
 ```
 
----
+<br>
 
-## ⚙️ Configuration File
 
-Located at `src/config/config.json`. Use the `config` and `set-config` commands to view and update.
-
----
-
-## 🧪 Mock Server Mode
+## Mock Server Mode
 
 When enabled (`enableMockServer: true`), ApiVeritas runs an internal mock server and uses `mock.json` test suite by default. This allows testing without a live API.
 
----
+<br>
+<br>
 
 ## ✅ CI Setup Snippet (GitHub Actions)
 
@@ -196,11 +297,12 @@ jobs:
       - name: Run contract tests
         run: apiveritas run --tests mock.json --testSuite mock
 ```
-
+<br>
+<br>
 
 ## Exit Codes
 
-ApiVeritas uses the following exit codes to indicate the result of CLI operations. This helps with scripting, CI pipelines, and automated monitoring.
+APIVERITAS uses the following exit codes to indicate the result of CLI operations. This helps with scripting, CI pipelines, and automated monitoring.
 
 | Exit Code | Meaning                                   |
 |-----------|-------------------------------------------|
@@ -213,14 +315,17 @@ ApiVeritas uses the following exit codes to indicate the result of CLI operation
 | 6         | Comparison failure (payload diff found)   |
 | 7         | Mock server error                         |
 
----
+
+<br>
+<br>
 
 ## Author
 
 Mario Galea – [GitHub](https://github.com/mariogalea)
 
----
+<br>
+<br>
 
 ## License
 
-MIT © 2025 Mario Galea
+MIT © 2025 http://qualitymatters.io
