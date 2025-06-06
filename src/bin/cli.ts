@@ -8,18 +8,18 @@
  */
 
 import { Command } from 'commander';
-import { ConfigLoader } from './core/config/ConfigLoader';
-import { ApiCaller } from './core/services/ApiCaller';
-import { PayloadComparer } from './PayloadComparer';
-import { Logger } from './core/utils/Logger';
+import { ConfigLoader } from '../core/config/ConfigLoader';
+import { ApiCaller } from '../core/services/ApiCaller';
+import { PayloadComparer } from '../PayloadComparer';
+import { Logger } from '../core/utils/Logger';
 import path from 'path';
-import { PackageInfo } from './core/utils/PackageInfo';
-import { TestSuiteLoader } from './core/services/TestSuiteLoader';
+import { PackageInfo } from '../core/utils/PackageInfo';
+import { TestSuiteLoader } from '../core/services/TestSuiteLoader';
 import chalk from 'chalk';
-import { MockServer } from './core/services/MockServer';
-import { ExitHandler, ExitCode } from './core/services/ExitHandler';
-import { IComparerOptions } from './interfaces/IComparerOptions';
-import { IApiRequest } from './interfaces/IApiRequest';
+import { MockServer } from '../core/services/MockServer';
+import { ExitHandler, ExitCode } from '../core/services/ExitHandler';
+import { IComparerOptions } from '../interfaces/IComparerOptions';
+import { IApiRequest } from '../interfaces/IApiRequest';
 
 const program = new Command();
 const version = PackageInfo.getInstance().getVersion();

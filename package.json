@@ -3,18 +3,18 @@
   "version": "1.0.0",
   "main": "dist/index.js",
   "bin": {
-    "apiveritas": "./dist/cli.js"
+    "apiveritas": "./dist/bin/cli.js"
   },
   "type": "commonjs",
   "scripts": {
     "build": "tsc && node scripts/add-shebang.js",
-    "start": "npm run build && node dist/cli.js",
+    "start": "npm run build && node dist/bin/cli.js",
     "watch": "tsc --watch",
     "start:mock": "node dist/core/services/MockServer.js"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
+  "license": "MIT",
   "description": "",
   "dependencies": {
     "ajv": "^8.17.1",
