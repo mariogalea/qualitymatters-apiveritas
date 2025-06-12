@@ -20,6 +20,7 @@ import { MockServer } from '../core/services/MockServer';
 import { ExitHandler, ExitCode } from '../core/services/ExitHandler';
 import { IComparerOptions } from '../interfaces/IComparerOptions';
 import { IApiRequest } from '../interfaces/IApiRequest';
+import { InitCommand } from '../commands/InitCommand';
 
 const program = new Command();
 const version = PackageInfo.getInstance().getVersion();
@@ -41,6 +42,18 @@ program
   } catch (err) {
     exitHandler.configError('❌ Failed to load configuration. Ensure config.json exists and is valid.');
   }
+
+program
+.command('init')
+.description('Initialize ApiVeritas folder structure with template files')
+.option('--force', 'Overwrite existing files if present')
+.option('--path <target>', 'Target directory for initialization (default: current directory)')
+.action(async (options) => {
+  const initCmd = new InitCommand(logger);
+  await initCmd.run(options.path || '.', options.force === true);
+  exitHandler.success();
+});
+
 
 /**
  * Run API tests by executing requests defined in a test suite.

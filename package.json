@@ -7,7 +7,8 @@
   },
   "type": "commonjs",
   "scripts": {
-    "build": "tsc && node scripts/add-shebang.js",
+    "build": "tsc && npm run copy-templates && node scripts/add-shebang.js",
+    "copy-templates": "ts-node scripts/copy-templates.ts",
     "start": "npm run build && node dist/bin/cli.js",
     "watch": "tsc --watch",
     "start:mock": "node dist/core/services/MockServer.js"
@@ -26,13 +27,16 @@
     "commander": "^14.0.0",
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
+    "fs-extra": "^11.3.0",
     "generate-schema": "^2.6.0"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
     "@types/body-parser": "^1.19.5",
     "@types/express": "^5.0.2",
+    "@types/fs-extra": "^11.0.4",
     "@types/node": "^22.15.19",
+    "cpy-cli": "^5.0.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.8.3"
   }
