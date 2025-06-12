@@ -2,8 +2,8 @@
   "strictSchema": true,
   "strictValues": false,
   "tolerateEmptyResponses": true,
-  "payloadsPath": "C:\\dev\\qualitymatters-apiveritas\\payloads",
-  "reportsPath": "C:\\dev\\qualitymatters-apiveritas\\reports",
+  "payloadsPath": "./apiveritas/payloads",
+  "reportsPath": "./apiveritas/reports",
   "baseUrl": "http://localhost:8080",
   "enableMockServer": false
 }

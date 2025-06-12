@@ -8,12 +8,15 @@ export class ApiVeritas {
   private caller: ApiCaller;
   private comparer: PayloadComparer;
   private config: any;
+  private configLoader: ConfigLoader;
+
 
   constructor() {
     const testFilePath = path.join(process.cwd(), 'tests', 'bookings.json');
     const testSuite = TestSuiteLoader.loadSuite(testFilePath);
 
-    this.config = ConfigLoader.loadConfig();
+    this.configLoader = new ConfigLoader();  
+    this.config = this.configLoader.loadConfig();  
     this.caller = new ApiCaller(testSuite, this.config);
     this.comparer = new PayloadComparer(this.config);
   }

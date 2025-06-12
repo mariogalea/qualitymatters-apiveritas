@@ -1,0 +1,58 @@
+[
+  {
+    "name": "GetAllBookings",
+    "url": "/bookings",
+    "auth": {
+      "username": "admin",
+      "password": "secret"
+    },
+    "expectedStatus": 200
+  },
+  {
+    "name": "GetOneBooking",
+    "url": "/bookings/3",
+    "auth": {
+      "username": "admin",
+      "password": "secret"
+    },
+    "expectedStatus": 200
+  },
+  {
+    "name": "CreateBooking",
+    "url": "/bookings/new",
+    "method": "POST",
+    "auth": {
+      "username": "admin",
+      "password": "secret"
+    },
+    "body": {
+      "firstName": "John",
+      "lastName": "Galea"
+    },
+    "expectedStatus": 200
+  },
+  {
+    "name": "UpdateBooking",
+    "url": "/bookings/update/3",
+    "method": "PUT",
+    "auth": {
+      "username": "admin",
+      "password": "secret"
+    },
+    "body": {
+      "firstName": "Mario",
+      "lastName": "Borg"
+    },
+    "expectedStatus": 200
+  },
+  {
+    "name": "DeleteBooking",
+    "url": "/bookings/delete/1",
+    "method": "DELETE",
+    "auth": {
+      "username": "admin",
+      "password": "secret"
+    },
+    "expectedStatus": 200
+  }
+]

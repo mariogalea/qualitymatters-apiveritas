@@ -28,6 +28,7 @@ const version = PackageInfo.getInstance().getVersion();
 const logger = new Logger();
 const exitHandler = new ExitHandler(logger);
 
+const configLoader = new ConfigLoader(); 
 
 
 program
@@ -38,7 +39,7 @@ program
 
   let config: any;
   try {
-    config = ConfigLoader.loadConfig();
+    config = configLoader.loadConfig();  
   } catch (err) {
     exitHandler.configError('❌ Failed to load configuration. Ensure config.json exists and is valid.');
   }
@@ -228,29 +229,32 @@ program
   .command('config')
   .description('Show current configuration loaded from config.json')
   .action(() => {
-    try {
-      const configPath = path.resolve(process.cwd(), 'src/config/config.json');
+try {
+    // Create ConfigLoader instance (default folder 'apiveritas' in cwd)
+    const configLoader = new ConfigLoader();
+    const config = configLoader.loadConfig();
 
-      if (!config || Object.keys(config).length === 0) {
-        exitHandler.configError('❌ Configuration is empty or not loaded properly.');
-      }
-
-      logger.info(chalk.white('\n  Configuration file: ') + chalk.white.bold(configPath) + '\n');
-
-      const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
-
-      Object.entries(config).forEach(([key, value]) => {
-        const paddedKey = key.padEnd(maxKeyLength, ' ');
-        logger.info(`${chalk.white(paddedKey)} : ${chalk.green.bold(String(value))}`);
-      });
-
-      console.log(); // For spacing
-      exitHandler.success();
-    } catch (err) {
-      const message = err instanceof Error ? err.message : 'Unknown error occurred while displaying configuration.';
-      exitHandler.generalError(`❌ ${message}`);
+    if (!config || Object.keys(config).length === 0) {
+      exitHandler.configError('❌ Configuration is empty or not loaded properly.');
     }
-  });
+
+    const configPath = path.join(process.cwd(), 'apiveritas', 'config.json');
+    logger.info(chalk.white('\n  Configuration file: ') + chalk.white.bold(configPath) + '\n');
+
+    const maxKeyLength = Math.max(...Object.keys(config).map(key => key.length));
+
+    Object.entries(config).forEach(([key, value]) => {
+      const paddedKey = key.padEnd(maxKeyLength, ' ');
+      logger.info(`${chalk.white(paddedKey)} : ${chalk.green.bold(String(value))}`);
+    });
+
+    console.log(); // For spacing
+    exitHandler.success();
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error occurred while displaying configuration.';
+    exitHandler.generalError(`❌ ${message}`);
+  }
+});
 
 /**
  * Update configuration values interactively.
@@ -303,7 +307,8 @@ program
         exitHandler.invalidArgs('⚠️  No configuration changes provided. Use set-config --help for available options.');
       }
 
-      ConfigLoader.updateConfig(changes);
+      const configLoader = new ConfigLoader(); 
+      configLoader.updateConfig(changes);     
       logger.info(chalk.green('\n✅ Configuration updated successfully!\n'));
       exitHandler.success();
     } catch (err) {

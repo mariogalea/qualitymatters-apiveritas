@@ -32,6 +32,8 @@ export class PayloadComparer {
   private options: IComparerOptions;
   private logger: Logger;
   private config: any;
+  private configLoader: ConfigLoader;
+
 
   /**
    * Creates a new PayloadComparer instance.
@@ -53,7 +55,9 @@ export class PayloadComparer {
     this.options = options;
     this.comparator = new BasicComparator(this.options.strictValues);
     this.logger = logger;
-    this.config = ConfigLoader.loadConfig();
+
+    this.configLoader = new ConfigLoader();  // create ConfigLoader instance
+    this.config = this.configLoader.loadConfig();
 
     logger.info(chalk.white.bold.underline('Payload Comparison:\n'));
     logger.info(`${chalk.white('Payload Folder:')} ${chalk.white(this.payloadsDir)}\n`);
@@ -240,7 +244,8 @@ export class PayloadComparer {
       }
     });
 
-    this.config = ConfigLoader.loadConfig();
+    this.configLoader = new ConfigLoader();  // create ConfigLoader instance
+    this.config = this.configLoader.loadConfig();   
     const maxKeyLength = Math.max(...Object.keys(this.config).map(key => key.length));
 
     console.log();

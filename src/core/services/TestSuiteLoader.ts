@@ -50,7 +50,7 @@ export class TestSuiteLoader {
       );
     }
 
-    const testFilePath = path.resolve(process.cwd(), 'tests', actualFile);
+    const testFilePath = path.resolve(process.cwd(), 'apiveritas', 'tests', 'real', actualFile);
 
     // Check file existence
     if (!fs.existsSync(testFilePath)) {
@@ -97,7 +97,7 @@ export class TestSuiteLoader {
    * @returns A list of file names ending in `.json` from the `tests/` folder.
    */
   static listAvailableSuites(): string[] {
-    const testsDir = path.resolve(process.cwd(), 'tests');
+  const testsDir = path.resolve(process.cwd(), 'apiveritas', 'tests', 'real');
 
     // If folder doesn't exist, return empty list
     if (!fs.existsSync(testsDir)) return [];
