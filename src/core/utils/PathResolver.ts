@@ -39,6 +39,17 @@ export class PathResolver {
   }
 
   /**
+   * Resolve path to the templates directory relative to the *runtime* location,
+   * based on the __dirname of this file. This is important for global installed package usage.
+   */
+  public templatesDirRuntime(): string {
+    // __dirname here is dist/core/utils after compilation,
+    // so templates folder is typically located at dist/templates, 
+    // so we go up two levels and into templates:
+    return path.resolve(__dirname, '..', '..', 'templates');
+  }
+
+  /**
    * Resolve a path relative to a custom base directory.
    * @param baseDir The base directory.
    * @param segments Additional path segments.
