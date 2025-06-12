@@ -50,7 +50,10 @@ export class TestSuiteLoader {
       );
     }
 
-    const testFilePath = path.resolve(process.cwd(), 'apiveritas', 'tests', 'real', actualFile);
+    const testFolder = useMock ? 'mock' : 'real';
+    const testFilePath = path.resolve(process.cwd(), 'apiveritas', 'tests', testFolder, actualFile);
+
+    console.log(testFolder);
 
     // Check file existence
     if (!fs.existsSync(testFilePath)) {

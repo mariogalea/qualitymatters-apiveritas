@@ -26,7 +26,7 @@ export class MockServer {
 
   private app = express();
   private readonly port = 3000;
-  private readonly mockDir = path.resolve('mock-responses');
+  private readonly mockDir = path.resolve('apiveritas/tests/mock/mock-responses');
   private logger = new Logger({ level: 'info' });
   private server?: http.Server;
 

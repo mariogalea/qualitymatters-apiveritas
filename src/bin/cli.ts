@@ -106,8 +106,6 @@ program
       }
     }
 
-    logger.info(chalk.cyan(`\n  Loading test suite: tests/${testFile}\n`));
-
     let requests: IApiRequest[];
     try {
       requests = TestSuiteLoader.loadSuite(testFile, config);

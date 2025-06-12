@@ -28,7 +28,7 @@ export class ResponseSaver {
    */
   constructor() {
     this.logger = new Logger();
-    this.baseFolder = path.join(process.cwd(), 'payloads', this.generateTimestamp());
+    this.baseFolder = path.join(process.cwd(), 'apiveritas', 'payloads', this.generateTimestamp());
     this.ensureFolderExists(this.baseFolder);
   }
 
