@@ -32,7 +32,7 @@ export class HtmlReporter {
    * Creates the reports directory if it does not exist, and initializes the logger.
    */
   constructor() {
-    this.reportsDir = path.join(__dirname, '..', '..', '..', 'reports');
+    this.reportsDir = path.join(process.cwd(), 'apiveritas', 'reports');
     this.logger = new Logger({ level: 'info' });
 
     if (!fs.existsSync(this.reportsDir)) {
