@@ -1,4 +1,4 @@
-name: ApiVeritas Contract Tests Full Run
+name: ApiVeritas CI Run
 
 on:
   push:
@@ -82,6 +82,7 @@ jobs:
 
           echo "latest=$LATEST" >> $GITHUB_OUTPUT
           echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+
 
       - name: Download latest and previous payloads from R2
         run: |
