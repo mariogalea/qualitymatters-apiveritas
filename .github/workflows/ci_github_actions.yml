@@ -32,6 +32,9 @@ jobs:
       - name: Build TypeScript
         run: npm run build
 
+      - name: Link APIVERITAS with npm
+        run: npm link
+
       - name: Initialise apiveritas folder structure
         run: apiveritas init
 
