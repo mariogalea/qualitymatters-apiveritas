@@ -335,8 +335,8 @@ program
         exitHandler.invalidArgs('❌ Missing required option: --testSuite <name>');
       }
 
-      const comparer = new PayloadComparer(config, logger);
-      const folders = comparer.getLatestTwoPayloadFolders();
+      const comparer = new PayloadComparer(testSuite, config, logger);
+      const folders = comparer.getLatestTwoPayloadFolders(testSuite);
 
       if (!folders) {
         logger.error(chalk.red('❌ Could not find two payload folders to compare.\n'));
@@ -431,7 +431,7 @@ program
     const caller = new ApiCaller(requests, logger, config.baseUrl);
     await caller.callAll();
 
-    const comparer = new PayloadComparer(config, logger);
+    const comparer = new PayloadComparer(testSuite, config, logger);
     const folders = comparer.getLatestTwoPayloadFolders();
 
     if (!folders) {

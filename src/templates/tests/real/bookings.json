@@ -44,15 +44,5 @@
       "lastName": "Borg"
     },
     "expectedStatus": 200
-  },
-  {
-    "name": "DeleteBooking",
-    "url": "/bookings/delete/1",
-    "method": "DELETE",
-    "auth": {
-      "username": "admin",
-      "password": "secret"
-    },
-    "expectedStatus": 200
   }
 ]

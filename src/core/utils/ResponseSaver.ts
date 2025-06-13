@@ -3,12 +3,11 @@
  * @author Mario Galea
  * @description
  * Handles saving API responses to timestamped payload folders during test runs.
- * Each suite's responses are organized into subfolders under the timestamped directory.
+ * Each suite's responses are organized into subfolders under the suite/timestamp directory.
  * This supports historical test data tracking and diffing between runs.
- * 
+ *
  * Example folder structure:
- * payloads/2025.05.28.142530/<suite>/<name>.json
- * 
+ * payloads/<suite>/<timestamp>/<name>.json
  */
 
 import fs from 'fs';
@@ -21,15 +20,16 @@ import { Logger } from '../utils/Logger';
  */
 export class ResponseSaver {
   private baseFolder: string;
+  private timestampFolder: string;
   private logger: Logger;
 
   /**
-   * Initializes the `ResponseSaver`, creating a timestamped payload folder.
+   * Initializes the `ResponseSaver`, preparing the base payload directory.
    */
   constructor() {
     this.logger = new Logger();
-    this.baseFolder = path.join(process.cwd(), 'apiveritas', 'payloads', this.generateTimestamp());
-    this.ensureFolderExists(this.baseFolder);
+    this.baseFolder = path.join(process.cwd(), 'apiveritas', 'payloads');
+    this.timestampFolder = this.generateTimestamp();
   }
 
   /**
@@ -69,26 +69,26 @@ export class ResponseSaver {
    * @param {any} data - The API response payload to save.
    */
   public saveResponse(suite: string, name: string, data: any): void {
-    const suiteFolder = path.join(this.baseFolder, suite);
-    this.ensureFolderExists(suiteFolder);
+    const suiteTimestampFolder = path.join(this.baseFolder, suite, this.timestampFolder);
+    this.ensureFolderExists(suiteTimestampFolder);
 
-    const filePath = path.join(suiteFolder, `${name}.json`);
+    const filePath = path.join(suiteTimestampFolder, `${name}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2), 'utf-8');
   }
 
   /**
-   * Returns the folder name used for this run (e.g., "2025.05.28.142530").
+   * Returns the folder name used for this run (e.g., "2025.06.13.143005").
    *
    * @returns {string} The timestamp folder name.
    */
   public getTimestampFolderName(): string {
-    return path.basename(this.baseFolder);
+    return this.timestampFolder;
   }
 
   /**
    * Returns the absolute path to the base folder where payloads are stored.
    *
-   * @returns {string} Absolute path to the timestamped payload folder.
+   * @returns {string} Absolute path to the payload base folder.
    */
   public getBaseFolderPath(): string {
     return this.baseFolder;

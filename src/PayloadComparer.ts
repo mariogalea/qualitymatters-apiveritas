@@ -44,24 +44,31 @@ export class PayloadComparer {
    * @param {Logger} [logger] - Optional logger instance to capture logs.
    */
   constructor(
-    options: IComparerOptions = {
-      strictSchema: true,
-      strictValues: true,
-      tolerateEmptyResponses: false,
-    },
-    logger: Logger = new Logger()
-  ) {
-    this.payloadsDir = path.join(process.cwd(), 'apiveritas', 'payloads');
-    this.options = options;
-    this.comparator = new BasicComparator(this.options.strictValues);
-    this.logger = logger;
+  testSuiteName: string,
+  options: IComparerOptions = {
+    strictSchema: true,
+    strictValues: true,
+    tolerateEmptyResponses: false,
+  },
+  logger: Logger = new Logger()
+) {
+  this.configLoader = new ConfigLoader();
+  this.config = this.configLoader.loadConfig();
 
-    this.configLoader = new ConfigLoader();  // create ConfigLoader instance
-    this.config = this.configLoader.loadConfig();
+  // Use custom or default payloads path
+  const basePayloadsDir = this.config.payloadsPath || path.join(process.cwd(), 'apiveritas', 'payloads');
 
-    logger.info(chalk.white.bold.underline('Payload Comparison:\n'));
-    logger.info(`${chalk.white('Payload Folder:')} ${chalk.white(this.payloadsDir)}\n`);
-  }
+  // Include test suite in the path
+  this.payloadsDir = path.join(basePayloadsDir, testSuiteName);
+
+  this.options = options;
+  this.comparator = new BasicComparator(this.options.strictValues);
+  this.logger = logger;
+
+  logger.info(chalk.white.bold.underline('Payload Comparison:\n'));
+  logger.info(`${chalk.white('Test Suite Folder:')} ${chalk.white(testSuiteName)}`);
+  logger.info(`${chalk.white('Payload Directory:')} ${chalk.white(this.payloadsDir)}\n`);
+}
 
   /**
    * Retrieves the two most recent payload snapshot folders for comparison.
@@ -96,43 +103,11 @@ export class PayloadComparer {
         return null;
       }
 
-      if (testSuite) {
-        // Filter only folders that contain the testSuite folder
-        const validFolders = timestampFolders.filter(folder =>
-          fs.existsSync(path.join(this.payloadsDir, folder, testSuite))
-        );
-
-        if (validFolders.length < 2) {
-          this.logger.warn(`Not enough payload folders with test suite "${testSuite}" to compare.`);
-          return null;
-        }
-
-        return [validFolders[1], validFolders[0]];
-      }
-
       // No testSuite specified, just return latest two timestamp folders
       return [timestampFolders[0], timestampFolders[1]];
     }
 
-    
-
-    /*
-    const folders = fs
-      .readdirSync(this.payloadsDir)
-      .filter((file) => fs.statSync(path.join(this.payloadsDir, file)).isDirectory())
-      .sort()
-      .reverse();
-
-    if (folders.length < 2) {
-      this.logger.warn('Not enough payload folders to compare.');
-      return null;
-    }
-
-    return [folders[1], folders[0]];
-    */
-  
-
-  /**
+      /**
    * Compares JSON payload files in two folders (optionally within a test suite subfolder).
    * Generates detailed logs, counts matched and differing files, validates schema,
    * and generates an HTML report.
@@ -143,6 +118,7 @@ export class PayloadComparer {
    * @returns {void}
    */
   compareFolders( newFolder: string, oldFolder: string, testSuite?: string): boolean {
+
     if (this.config.enableMockServer) {
       testSuite = 'mock';
     }
@@ -157,12 +133,13 @@ export class PayloadComparer {
       this.logger.info(chalk.yellowBright('! No test suite specified. Comparing top-level payload files.\n'));
     }
 
-    const oldPath = testSuite
-      ? path.join(this.payloadsDir, oldFolder, testSuite)
-      : path.join(this.payloadsDir, oldFolder);
-    const newPath = testSuite
-      ? path.join(this.payloadsDir, newFolder, testSuite)
-      : path.join(this.payloadsDir, newFolder);
+    if (!testSuite) {
+      this.logger.warn('No test suite specified. Cannot compare folders.');
+      return false;
+    }
+
+    const oldPath = path.join(this.payloadsDir, oldFolder);
+    const newPath = path.join(this.payloadsDir, newFolder);
 
     if (!fs.existsSync(oldPath)) {
       this.logger.warn(`Old folder path does not exist: ${oldPath}`);
