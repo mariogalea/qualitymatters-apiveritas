@@ -67,12 +67,12 @@ jobs:
       - name: Upload new payload to R2 (timestamped)
         run: |
           TIMESTAMP=$(basename "${{ steps.find_payload.outputs.folder }}")
-          aws s3 cp "${{ steps.find_payload.outputs.folder }}/mock/" \
-            "s3://$R2_BUCKET/mock/$TIMESTAMP/mock/" \
+          aws s3 cp "${{ steps.find_payload.outputs.folder }}" \
+            "s3://$R2_BUCKET/$TIMESTAMP/mock/" \
             --recursive --endpoint-url $R2_ENDPOINT
 
 
-      - name: List folders in R2 (mock)
+      - name: List folders in R2 - mock
         id: list_folders
         run: |
           echo "Listing folders in R2..."
