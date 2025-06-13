@@ -96,7 +96,6 @@ jobs:
           } >> "$GITHUB_OUTPUT"
           
 
-
       - name: Exit if only one folder.
         if: steps.list_folders.outputs.count == '1'
         run: |
