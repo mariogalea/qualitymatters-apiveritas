@@ -3,6 +3,7 @@ import path from 'path';
 import { IComparerOptions } from '../../interfaces/IComparerOptions';
 import { Logger } from '../utils/Logger';
 import { PathValidator } from './PathValidator';
+import chalk from 'chalk';
 
 export class ConfigLoader {
   private logger = new Logger({ level: 'info' });
@@ -55,18 +56,18 @@ export class ConfigLoader {
         this.logger.warn('! Failed to parse config.json, using defaults.');
       }
     } else {
-      this.logger.warn(`! config.json not found at ${this.configPath}, using default settings.`);
+        console.log(chalk.yellow(`\nconfig.json not found at ${this.configPath}.\n\nRun 'apiveritas init' to create a working folder structure\n`))    
     }
 
     // Defaults fallback
     return {
       strictSchema: true,
-      strictValues: true,
-      tolerateEmptyResponses: false,
+      strictValues: false,
+      tolerateEmptyResponses: true,
       payloadsPath: defaultPayloadsPath,
       reportsPath: defaultReportsPath,
       baseUrl: 'http://localhost:8080',
-      enableMockServer: false,
+      enableMockServer: true,
     };
   }
 

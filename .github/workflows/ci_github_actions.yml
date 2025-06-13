@@ -29,12 +29,16 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Enable mock server mode in config.json
-        run: |
-          jq '.enableMockServer = true' src/config/config.json > temp && mv temp src/config/config.json
-
       - name: Build TypeScript
         run: npm run build
+
+      - name: Initialise apiveritas folder structure
+        run: apiveritas init
+
+      - name: Enable mock server mode in config.json
+        run: |
+          jq '.enableMockServer = true' apiveritas/config.json > temp && mv temp apiveritas/config.json
+ 
 
       - name: Install AWS CLI
         run: |
