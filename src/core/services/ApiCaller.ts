@@ -101,9 +101,21 @@ export class ApiCaller {
           `Saved response: payloads/${saver.getTimestampFolderName()}/${testSuite}/${safeName}.json`
         );
 
-      } catch (error) {
-        const message = error instanceof Error ? error.message : String(error);
-        this.logger.error(`Failed to call [${req.name}]: ${message}`);
+      } catch (error: unknown) {
+  if (error instanceof Error) {
+    this.logger.error(chalk.red(`❌ Failed to call [${req.name}]: ${error.message}`));
+
+    // Cast error to any to access response (Axios error)
+    const anyErr = error as any;
+    if (anyErr.response) {
+      this.logger.error(chalk.red(`-> HTTP Status: ${anyErr.response.status}`));
+      this.logger.error(chalk.red(`-> Response body: ${JSON.stringify(anyErr.response.data)}`));
+    }
+  } else {
+    this.logger.error(chalk.red(`❌ Failed to call [${req.name}]: Unknown error`));
+  }
+
+
       }
 
       console.log('');

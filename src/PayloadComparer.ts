@@ -51,7 +51,7 @@ export class PayloadComparer {
     },
     logger: Logger = new Logger()
   ) {
-    this.payloadsDir = path.join(process.cwd(), 'payloads');
+    this.payloadsDir = path.join(process.cwd(), 'apiveritas', 'payloads');
     this.options = options;
     this.comparator = new BasicComparator(this.options.strictValues);
     this.logger = logger;
@@ -67,13 +67,56 @@ export class PayloadComparer {
    * Retrieves the two most recent payload snapshot folders for comparison.
    * Folders are sorted by name descending (newest assumed last).
    * @returns {[string, string] | null} - Tuple of [previousFolder, latestFolder] or null if insufficient data.
-   */
+   
   getLatestTwoPayloadFolders(): [string, string] | null {
     if (!fs.existsSync(this.payloadsDir)) {
       this.logger.warn('No payloads directory found.');
       return null;
     }
 
+  /**
+     * Returns the names of the latest two timestamp folders which contain the given testSuite folder.
+     * If no testSuite specified, returns the latest two timestamp folders.
+     */
+    getLatestTwoPayloadFolders(testSuite?: string): [string, string] | null {
+      if (!fs.existsSync(this.payloadsDir)) {
+        this.logger.warn('No payloads directory found.');
+        return null;
+      }
+
+      // Read all timestamp folders sorted newest first
+      const timestampFolders = fs
+        .readdirSync(this.payloadsDir)
+        .filter((file) => fs.statSync(path.join(this.payloadsDir, file)).isDirectory())
+        .sort()
+        .reverse();
+
+      if (timestampFolders.length < 2) {
+        this.logger.warn('Not enough payload folders to compare.');
+        return null;
+      }
+
+      if (testSuite) {
+        // Filter only folders that contain the testSuite folder
+        const validFolders = timestampFolders.filter(folder =>
+          fs.existsSync(path.join(this.payloadsDir, folder, testSuite))
+        );
+
+        if (validFolders.length < 2) {
+          this.logger.warn(`Not enough payload folders with test suite "${testSuite}" to compare.`);
+          return null;
+        }
+
+        return [validFolders[1], validFolders[0]];
+      }
+
+      // No testSuite specified, just return latest two timestamp folders
+      return [timestampFolders[0], timestampFolders[1]];
+    }
+
+    
+
+    /*
     const folders = fs
       .readdirSync(this.payloadsDir)
       .filter((file) => fs.statSync(path.join(this.payloadsDir, file)).isDirectory())
@@ -86,7 +129,8 @@ export class PayloadComparer {
     }
 
     return [folders[1], folders[0]];
-  }
+    */
+  
 
   /**
    * Compares JSON payload files in two folders (optionally within a test suite subfolder).
