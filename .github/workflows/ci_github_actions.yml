@@ -116,8 +116,6 @@ jobs:
             apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
             --endpoint-url $R2_ENDPOINT
 
-
-        
       - name: Run comparison between latest and previous
         run: |
           npx apiveritas compare --testSuite mock
