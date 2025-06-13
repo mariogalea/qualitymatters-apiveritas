@@ -64,37 +64,37 @@ jobs:
           echo "Latest folder: $latest_folder"
           echo "folder=$latest_folder" >> $GITHUB_OUTPUT
       
-
-      - name: Upload new payload to R2 (timestamped)
+      - name: Upload new payloads to R2
         run: |
-          aws s3 cp "${{ steps.find_payload.outputs.folder }}" "s3://$R2_BUCKET/mock/$(basename ${{ steps.find_payload.outputs.folder }})/" \
-            --recursive --endpoint-url $R2_ENDPOINT
+          export TIMESTAMP=$(ls apiveritas/payloads/mock | sort -r | head -n1)
+          
+          aws s3 sync apiveritas/payloads/mock/$TIMESTAMP/ \
+            s3://apiveritas-payloads/mock/$TIMESTAMP/ \
+            --endpoint-url $R2_ENDPOINT
 
-
-
-      - name: List folders in R2 - mock
+      - name: List timestamped folders in R2
         id: list_folders
         run: |
-          echo "Listing folders in R2..."
-          folder_list=$(aws s3 ls s3://$R2_BUCKET/mock/ --endpoint-url $R2_ENDPOINT | awk '{print $2}' | sed 's#/##' | sort)
-          folder_count=$(echo "$folder_list" | wc -l)
-      
-          echo "Found $folder_count folders:"
-          echo "$folder_list"
-      
-          latest=$(echo "$folder_list" | tail -n 1)
-          previous=$(echo "$folder_list" | tail -n 2 | head -n 1)
-      
-          echo "Latest folder: $latest"
-          echo "Previous folder: $previous"
-      
-          # Write outputs safely for GitHub Actions
-          {
-            printf "count=%s\n" "$folder_count"
-            printf "latest=%s\n" "$latest"
-            printf "previous=%s\n" "$previous"
-          } >> "$GITHUB_OUTPUT"
-          
+          aws s3 ls s3://apiveritas-payloads/mock/ --endpoint-url $R2_ENDPOINT | awk '{print $2}' | sed 's#/##' | sort -r > folder_list.txt
+
+          LATEST=$(head -n1 folder_list.txt)
+          PREVIOUS=$(sed -n '2p' folder_list.txt)
+
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+                
+      - name: Download latest and previous payloads from R2
+        run: |
+          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }}
+          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }}
+
+          aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.latest }}/ \
+            apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }} \
+            --endpoint-url $R2_ENDPOINT
+
+          aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.previous }}/ \
+            apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
+            --endpoint-url $R2_ENDPOINT
 
       - name: Exit if only one folder.
         if: steps.list_folders.outputs.count == '1'
@@ -102,19 +102,6 @@ jobs:
           echo "Only one payload available in R2, skipping comparison."
           exit 0
 
-      - name: Download latest and previous from R2
-        if: steps.list_folders.outputs.count != '1'
-        run: |
-          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }}
-          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }}
-
-          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.latest }}/ \
-            apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }} \
-            --endpoint-url $R2_ENDPOINT
-
-          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.previous }}/ \
-            apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
-            --endpoint-url $R2_ENDPOINT
 
       - name: Run comparison between latest and previous
         run: |
