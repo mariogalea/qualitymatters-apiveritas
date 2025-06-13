@@ -106,13 +106,14 @@ jobs:
       - name: Download latest and previous from R2
         if: steps.list_folders.outputs.count != '1'
         run: |
-          mkdir -p payloads/latest/mock payloads/previous/mock
+          mkdir -p apiveritas/payloads/latest/mock apiveritas/payloads/previous/mock
       
-          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.latest }}/ payloads/latest/mock \
+          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.latest }}/ apiveritas/payloads/latest/mock \
             --endpoint-url $R2_ENDPOINT
       
-          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.previous }}/ payloads/previous/mock \
+          aws s3 sync s3://$R2_BUCKET/mock/${{ steps.list_folders.outputs.previous }}/ apiveritas/payloads/previous/mock \
             --endpoint-url $R2_ENDPOINT
+
         
       - name: Run comparison between latest and previous
         run: |
