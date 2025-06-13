@@ -82,7 +82,7 @@ jobs:
 
           echo "latest=$LATEST" >> $GITHUB_OUTPUT
           echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
-                
+          
       - name: Download latest and previous payloads from R2
         run: |
           mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }}
@@ -95,6 +95,7 @@ jobs:
           aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.previous }}/ \
             apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
             --endpoint-url $R2_ENDPOINT
+
 
       - name: Exit if only one folder.
         if: steps.list_folders.outputs.count == '1'
