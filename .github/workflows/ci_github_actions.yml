@@ -82,18 +82,18 @@ jobs:
 
           echo "latest=$LATEST" >> $GITHUB_OUTPUT
           echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
-          
+
       - name: Download latest and previous payloads from R2
         run: |
           mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }}
           mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }}
 
           aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.latest }}/ \
-            apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }} \
+            apiveritas/payloads/${{ steps.list_folders.outputs.latest }} \
             --endpoint-url $R2_ENDPOINT
 
           aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.previous }}/ \
-            apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
+            apiveritas/payloads/${{ steps.list_folders.outputs.previous }} \
             --endpoint-url $R2_ENDPOINT
 
 
