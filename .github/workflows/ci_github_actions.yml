@@ -60,7 +60,7 @@ jobs:
       - name: Find latest payload folder
         id: find_payload
         run: |
-          latest_folder=$(ls -td payloads/* | head -n 1)
+          latest_folder=$(ls -td apiveritas/payloads/* | head -n 1)
           echo "Latest folder: $latest_folder"
           echo "folder=$latest_folder" >> $GITHUB_OUTPUT
       
