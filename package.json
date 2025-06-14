@@ -1,6 +1,7 @@
 {
   "name": "apiveritas",
   "version": "1.4.0",
+  "description": "Lightweight CLI tool for consumer-driven API contract testing via JSON schema and payload comparisons.",
   "main": "dist/index.js",
   "bin": {
     "apiveritas": "./dist/bin/cli.js"
@@ -14,10 +15,28 @@
     "watch": "tsc --watch",
     "start:mock": "node dist/core/services/MockServer.js"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "api",
+    "contract-testing",
+    "json-schema",
+    "cli",
+    "consumer-driven",
+    "testing",
+    "rest-api",
+    "mock-server",
+    "typescript",
+    "ci"
+  ],
+  "author": "Mario Galea <mario@example.com> (https://github.com/mariogalea)",
   "license": "MIT",
-  "description": "",
+  "homepage": "https://github.com/mariogalea/qualitymatters-apiveritas#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mariogalea/qualitymatters-apiveritas.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mariogalea/qualitymatters-apiveritas/issues"
+  },
   "dependencies": {
     "ajv": "^8.17.1",
     "ajv-draft-04": "^1.0.0",

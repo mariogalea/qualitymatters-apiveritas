@@ -1,5 +1,6 @@
 # APIVERITAS
 
+A CLI tool for consumer-driven contract testing using JSON comparisons.
 
 [![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)
 [![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
