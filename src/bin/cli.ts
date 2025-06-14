@@ -18,7 +18,6 @@ import { TestSuiteLoader } from '../core/services/TestSuiteLoader';
 import chalk from 'chalk';
 import { MockServer } from '../core/services/MockServer';
 import { ExitHandler, ExitCode } from '../core/services/ExitHandler';
-import { IComparerOptions } from '../interfaces/IComparerOptions';
 import { IApiRequest } from '../interfaces/IApiRequest';
 import { InitCommand } from '../commands/InitCommand';
 
@@ -48,15 +47,12 @@ program
   .command('init')
   .description('Initialize ApiVeritas folder structure with template files')
   .option('--force', 'Overwrite existing files if present')
-  .option('--path <target>', 'Target directory for initialization (default: "apiveritas" folder in cwd)')
   .action(async (options) => {
     try {
       const initCmd = new InitCommand(logger);
-      // Pass options.path as is (could be undefined), default handled inside InitCommand
-      await initCmd.run(options.path, options.force === true);
+      await initCmd.run(options.force === true);
       exitHandler.success();
     } catch (error) {
-      // Log error, exit non-zero
       logger.error(`Init command failed: ${error instanceof Error ? error.message : error}`);
       process.exit(1);
     }

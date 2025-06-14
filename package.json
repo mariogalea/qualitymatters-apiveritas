@@ -8,6 +8,7 @@
   "type": "commonjs",
   "scripts": {
     "build": "tsc && npm run copy-templates && node scripts/add-shebang.js",
+    "clean": "rimraf dist",
     "copy-templates": "ts-node scripts/copy-templates.ts",
     "start": "npm run build && node dist/bin/cli.js",
     "watch": "tsc --watch",
@@ -28,7 +29,8 @@
     "express": "^5.1.0",
     "express-basic-auth": "^1.2.1",
     "fs-extra": "^11.3.0",
-    "generate-schema": "^2.6.0"
+    "generate-schema": "^2.6.0",
+    "rimraf": "^6.0.1"
   },
   "devDependencies": {
     "@types/axios": "^0.9.36",
