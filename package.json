@@ -1,6 +1,6 @@
 {
   "name": "apiveritas",
-  "version": "1.4.0",
+  "version": "1.5.0",
   "description": "Lightweight CLI tool for consumer-driven API contract testing via JSON schema and payload comparisons.",
   "main": "dist/index.js",
   "bin": {
