@@ -51,6 +51,12 @@ To install APIVERITAS globally:
 npm install -g apiveritas
 ```
 
+Initialize before use via:
+
+```bash
+apiveritas init
+```
+
 #### Why use `-g`?
 
 Using the `-g` flag installs APIVERITAS globally, making the `apiveritas` command available from anywhere on your system. This is useful when:
@@ -70,6 +76,12 @@ You can also install APIVERITAS as a local development dependency:
 npm install --save-dev apiveritas
 ```
 
+Initialize before use via:
+
+```bash
+apiveritas init
+```
+
 #### Why use `--save-dev`?
 
 - You want tighter version control per project.
@@ -85,6 +97,18 @@ ApiVeritas provides a straightforward CLI with commands to manage and validate y
 
 You can run commands to execute tests, generate reports, manage payload snapshots, and configure your testing environment. Each command is designed to integrate seamlessly into your development workflow and CI/CD pipelines.
 
+## Test Flow 
+```mermaid
+flowchart LR
+    A[Write tests<br>in apiveritas/tests/real] --> B[Execute tests]
+    B --> C[Store Payloads]
+    C --> D[Compare Payloads<br>from previous run]
+    D --> E[Generate HTML Report]
+    E --> F[Exit Code for CI/CD]
+```
+
+## CLI Commands
+
 Below are the primary CLI commands you’ll use to get started and maintain API contract integrity.
 
 ```bash
@@ -98,6 +122,7 @@ Options:
   -h, --help            display help for command
 
 Commands:
+  init [options]        Initialize ApiVeritas folder structure with template files
   test [options]        Run all API requests and save responses
   list-tests            List all available JSON test files in the tests/ folder
   payloads-path         Show where the payloads are stored
@@ -110,6 +135,32 @@ Commands:
   help [command]        display help for command
   ```
 <br>
+
+
+### init
+
+Initialise the application an creates the below working folder structure:
+
+```bash
+apiveritas/
+├── config.json
+├── payloads/
+├── reports/
+└── tests/
+    ├── mock/
+    │   ├── mock.json
+    │   └── mock-responses/
+    │       └── *.json
+    └── real/
+        └── real.json
+```
+
+Example:
+
+```bash
+apiveritas init
+```
+
 
 ### test
 
