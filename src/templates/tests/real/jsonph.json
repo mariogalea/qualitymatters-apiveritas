@@ -1,0 +1,30 @@
+[
+  {
+    "name": "FetchAllPosts",
+    "method": "GET",
+    "url": "/posts",
+    "description": "Fetch all posts from JSONPlaceholder API.",
+    "expectedStatus": 200
+  },
+  {
+    "name": "FetchPost1",
+    "method": "GET",
+    "url": "/posts/1",
+    "description": "Fetch post with ID 1 from JSONPlaceholder API.",
+    "expectedStatus": 200
+  },
+  {
+    "name": "FetchPost1Comments",
+    "method": "GET",
+    "url": "/posts/1/comments",
+    "description": "Fetch comments for post with ID 1 from JSONPlaceholder API.",
+    "expectedStatus": 200
+  },
+  {
+    "name": "FetchCommentsByPostId1",
+    "method": "GET",
+    "url": "/comments?postId=1",
+    "description": "Fetch comments filtered by postId=1 from JSONPlaceholder API.",
+    "expectedStatus": 200
+  }
+]

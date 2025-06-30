@@ -2,6 +2,10 @@
 
 A CLI tool for consumer-driven contract testing using JSON comparisons.
 
+[![npm version](https://img.shields.io/npm/v/apiveritas.svg)](https://www.npmjs.com/package/apiveritas)
+[![npm downloads](https://img.shields.io/npm/dw/apiveritas.svg)](https://www.npmjs.com/package/apiveritas)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
+[![node](https://img.shields.io/node/v/apiveritas.svg)](https://nodejs.org)
 [![CI](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)](https://github.com/mariogalea/qualitymatters-apiveritas/actions/workflows/ci_github_actions.yml/badge.svg)
 [![Last Commit](https://img.shields.io/github/last-commit/mariogalea/qualitymatters-apiveritas.svg)](https://github.com/mariogalea/qualitymatters-apiveritas)
 
@@ -97,15 +101,64 @@ ApiVeritas provides a straightforward CLI with commands to manage and validate y
 
 You can run commands to execute tests, generate reports, manage payload snapshots, and configure your testing environment. Each command is designed to integrate seamlessly into your development workflow and CI/CD pipelines.
 
-## Test Flow 
-```mermaid
-flowchart LR
-    A[Write tests<br>in apiveritas/tests/real] --> B[Execute tests]
-    B --> C[Store Payloads]
-    C --> D[Compare Payloads<br>from previous run]
-    D --> E[Generate HTML Report]
-    E --> F[Exit Code for CI/CD]
+## Writing Test Files
+
+Test files in APIVERITAS are written in JSON format and define the API requests to be executed and validated. Each test file contains an array of test case objects, where each object describes a single API request and its expected outcome.
+
+### Test File Structure
+
+A typical test file (e.g., `jsonph.json`) looks like this:
+
+```json
+[
+  {
+    "name": "FetchAllPosts",
+    "method": "GET",
+    "url": "/posts",
+    "description": "Fetch all posts from JSONPlaceholder API.",
+    "expectedStatus": 200
+  },
+  {
+    "name": "FetchPost1",
+    "method": "GET",
+    "url": "/posts/1",
+    "description": "Fetch post with ID 1 from JSONPlaceholder API.",
+    "expectedStatus": 200
+  }
+]
 ```
+
+### Test Case Fields
+- `name`: A unique name for the test case.
+- `method`: HTTP method (GET, POST, PUT, DELETE, etc.).
+- `url`: The endpoint path (relative to the configured `baseUrl`).
+- `description`: (Optional) A human-readable description of the test.
+- `expectedStatus`: (Optional) The expected HTTP status code for the response.
+- `body`: (Optional) The request payload for POST/PUT requests.
+- `headers`: (Optional) Custom headers to include in the request.
+- `auth`: (Optional) Authentication details if required.
+- `testSuite`: (Optional) Logical grouping for the test (used in reporting).
+
+### Example: POST Request with Body
+```json
+{
+  "name": "CreatePost",
+  "method": "POST",
+  "url": "/posts",
+  "body": {
+    "title": "foo",
+    "body": "bar",
+    "userId": 1
+  },
+  "expectedStatus": 201
+}
+```
+
+### Tips
+- Place your test files in the `apiveritas/tests/real/` 
+- Use descriptive names and descriptions for clarity in reports.
+- You can group related tests in a single file or split them by endpoint or feature.
+- For advanced scenarios, refer to the CLI and configuration documentation below.
 
 ## CLI Commands
 
