@@ -15,6 +15,7 @@ A lightweight, CI-friendly contract testing tool for RESTful APIs. APIVERITAS en
 
 <br>
 <br>
+<br>
 
 ## Feature Highlights
 
@@ -71,6 +72,7 @@ Using the `-g` flag installs APIVERITAS globally, making the `apiveritas` comman
 
 Global installation provides convenience and consistency, especially for tools designed to work across repositories or environments.
 
+<br>
 
 ### Local Installation
 
@@ -101,9 +103,14 @@ ApiVeritas provides a straightforward CLI with commands to manage and validate y
 
 You can run commands to execute tests, generate reports, manage payload snapshots, and configure your testing environment. Each command is designed to integrate seamlessly into your development workflow and CI/CD pipelines.
 
+<br>
+<br>
+
 ## Writing Test Files
 
 Test files in APIVERITAS are written in JSON format and define the API requests to be executed and validated. Each test file contains an array of test case objects, where each object describes a single API request and its expected outcome.
+
+<br>
 
 ### Test File Structure
 
@@ -127,6 +134,7 @@ A typical test file (e.g., `jsonph.json`) looks like this:
   }
 ]
 ```
+<br>
 
 ### Test Case Fields
 - `name`: A unique name for the test case.
@@ -138,6 +146,8 @@ A typical test file (e.g., `jsonph.json`) looks like this:
 - `headers`: (Optional) Custom headers to include in the request.
 - `auth`: (Optional) Authentication details if required.
 - `testSuite`: (Optional) Logical grouping for the test (used in reporting).
+
+<br>
 
 ### Example: POST Request with Body
 ```json
@@ -153,12 +163,17 @@ A typical test file (e.g., `jsonph.json`) looks like this:
   "expectedStatus": 201
 }
 ```
+<br>
 
 ### Tips
 - Place your test files in the `apiveritas/tests/real/` 
 - Use descriptive names and descriptions for clarity in reports.
 - You can group related tests in a single file or split them by endpoint or feature.
 - For advanced scenarios, refer to the CLI and configuration documentation below.
+
+<br>
+<br>
+<br>
 
 ## CLI Commands
 
@@ -188,6 +203,7 @@ Commands:
   help [command]        display help for command
   ```
 <br>
+<br>
 
 
 ### init
@@ -214,6 +230,7 @@ Example:
 apiveritas init
 ```
 
+<br>
 
 ### test
 
@@ -286,6 +303,8 @@ Options:
 - `--reportsPath <path>`
 - `--baseUrl <url>`
 - `--enableMockServer <boolean>`
+
+<br>
 
 #### Configuration Flags
 
@@ -372,7 +391,7 @@ When enabled (`enableMockServer: true`), ApiVeritas runs an internal mock server
 <br>
 <br>
 
-## ✅ CI Setup Snippet (GitHub Actions)
+## CI Setup Snippet (GitHub Actions)
 
 ```yaml
 name: CI
@@ -401,6 +420,124 @@ jobs:
 
       - name: Run contract tests
         run: apiveritas run --tests mock.json --testSuite mock
+```
+<br>
+<br>
+
+## Full CI Example (GitHub Actions)
+
+Below is a complete example of a GitHub Actions workflow for running APIVERITAS contract tests, uploading payloads to S3-compatible storage - (Cloudflare R2 in this case), and comparing results between runs:
+
+```yaml
+name: ApiVeritas CI Run
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  contract-test:
+    runs-on: ubuntu-latest
+
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.R2_ACCESS_KEY }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.R2_SECRET_KEY }}
+      AWS_DEFAULT_REGION: auto
+      R2_BUCKET: ${{ secrets.R2_BUCKET }}
+      R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build TypeScript
+        run: npm run build
+
+      - name: Link APIVERITAS with npm
+        run: npm link
+
+      - name: Initialise apiveritas folder structure
+        run: apiveritas init
+
+      - name: Enable mock server mode in config.json
+        run: |
+          jq '.enableMockServer = true' apiveritas/config.json > temp && mv temp apiveritas/config.json
+ 
+      - name: Install AWS CLI
+        run: |
+          pip install --upgrade pip
+          pip install awscli
+
+      - name: Start Mock Server
+        run: npm run start:mock &
+
+      - name: Run ApiVeritas config
+        run: npx apiveritas config
+
+      - name: Run ApiVeritas test
+        run: npx apiveritas test --tests mock.json
+
+      - name: Find latest payload folder
+        id: find_payload
+        run: |
+          latest_folder=$(ls -td apiveritas/payloads/* | head -n 1)
+          echo "Latest folder: $latest_folder"
+          echo "folder=$latest_folder" >> $GITHUB_OUTPUT
+      
+      - name: Upload new payloads to R2
+        run: |
+          export TIMESTAMP=$(ls apiveritas/payloads/mock | sort -r | head -n1)
+          
+          aws s3 sync apiveritas/payloads/mock/$TIMESTAMP/ \
+            s3://apiveritas-payloads/mock/$TIMESTAMP/ \
+            --endpoint-url $R2_ENDPOINT
+
+      - name: List timestamped folders in R2
+        id: list_folders
+        run: |
+          aws s3 ls s3://apiveritas-payloads/mock/ --endpoint-url $R2_ENDPOINT | awk '{print $2}' | sed 's#/##' | sort -r > folder_list.txt
+
+          LATEST=$(head -n1 folder_list.txt)
+          PREVIOUS=$(sed -n '2p' folder_list.txt)
+
+          echo "latest=$LATEST" >> $GITHUB_OUTPUT
+          echo "previous=$PREVIOUS" >> $GITHUB_OUTPUT
+
+
+      - name: Download latest and previous payloads from R2
+        run: |
+          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }}
+          mkdir -p apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }}
+
+          aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.latest }}/ \
+            apiveritas/payloads/mock/${{ steps.list_folders.outputs.latest }} \
+            --endpoint-url $R2_ENDPOINT
+
+          aws s3 sync s3://apiveritas-payloads/mock/${{ steps.list_folders.outputs.previous }}/ \
+            apiveritas/payloads/mock/${{ steps.list_folders.outputs.previous }} \
+            --endpoint-url $R2_ENDPOINT
+
+
+      - name: Exit if only one folder.
+        if: steps.list_folders.outputs.count == '1'
+        run: |
+          echo "Only one payload available in R2, skipping comparison."
+          exit 0
+
+
+      - name: Run comparison between latest and previous
+        run: |
+          npx apiveritas compare --testSuite mock
 ```
 <br>
 <br>
